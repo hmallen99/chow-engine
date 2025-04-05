@@ -35,5 +35,8 @@
   "dependencies": {
     "@swc/helpers": "~0.5.11",
     "bitecs": "^0.3.40"
+  },
+  "devDependencies": {
+    "@webgpu/types": "^0.1.60"
   }
 }
