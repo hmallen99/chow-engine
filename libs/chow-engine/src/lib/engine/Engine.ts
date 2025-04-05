@@ -1,3 +1,4 @@
+import { createRenderer, Renderer } from './Renderer.js';
 import { Scene } from './Scene.js';
 
 /**
@@ -11,6 +12,7 @@ export class Engine {
   private _context: GPUCanvasContext;
   private _session: WebGPUSession;
   private _format: GPUTextureFormat;
+  private _renderer: Renderer;
 
   constructor(canvas: HTMLCanvasElement, session: WebGPUSession) {
     this._canvas = canvas;
@@ -24,6 +26,8 @@ export class Engine {
       device: session.device,
       format: this._format,
     });
+
+    this._renderer = createRenderer(session.device, canvas);
   }
 
   public createScene() {
@@ -46,6 +50,10 @@ export class Engine {
 
   public get format() {
     return this._format;
+  }
+
+  public get renderer() {
+    return this._renderer;
   }
 }
 
