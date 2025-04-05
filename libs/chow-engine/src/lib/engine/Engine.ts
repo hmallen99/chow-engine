@@ -10,6 +10,7 @@ export class Engine {
   private _canvas: HTMLCanvasElement;
   private _context: GPUCanvasContext;
   private _session: WebGPUSession;
+  private _format: GPUTextureFormat;
 
   constructor(canvas: HTMLCanvasElement, session: WebGPUSession) {
     this._canvas = canvas;
@@ -17,6 +18,12 @@ export class Engine {
     if (!context) throw new Error('Failed to intialize WebGPU context');
     this._context = context;
     this._session = session;
+
+    this._format = navigator.gpu.getPreferredCanvasFormat();
+    context.configure({
+      device: session.device,
+      format: this._format,
+    });
   }
 
   public createScene() {
@@ -35,6 +42,10 @@ export class Engine {
 
   public get context() {
     return this._context;
+  }
+
+  public get format() {
+    return this._format;
   }
 }
 
