@@ -11,8 +11,8 @@ export default function createRenderSystem() {
         TransformComponent.position.x[entity],
         TransformComponent.position.y[entity],
         TransformComponent.position.z[entity],
-        ModelComponent.material[entity],
-        ModelComponent.material[entity]
+        ModelComponent.materials[entity],
+        ModelComponent.materials[entity]
       );
     }
     return world;
