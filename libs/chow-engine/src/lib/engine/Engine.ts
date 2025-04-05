@@ -1,4 +1,4 @@
-import { Scene } from './scene.js';
+import { Scene } from './Scene.js';
 
 /**
  * The Basic WebGPU Engine.

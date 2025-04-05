@@ -1,9 +1,9 @@
 import { defineQuery, defineSystem } from 'bitecs';
 import { TransformComponent } from '../components/TransformComponent.js';
 import { ModelComponent } from '../components/ModelComponent.js';
-import { Scene } from '../engine/scene.js';
+import { Scene } from '../engine/Scene.js';
 
-export default function createRenderSystem(_scene: Scene) {
+export function createRenderSystem(_scene: Scene) {
   const renderQuery = defineQuery([TransformComponent, ModelComponent]);
 
   return defineSystem((world) => {
