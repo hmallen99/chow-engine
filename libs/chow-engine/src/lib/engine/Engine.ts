@@ -9,28 +9,14 @@ export class Engine {
   private scenes: Scene[] = [];
   private _canvas: HTMLCanvasElement;
   private _context: GPUCanvasContext;
-  private _ready = false;
-  private _adapter: GPUAdapter | null = null;
-  private _device: GPUDevice | null = null;
+  private _session: WebGPUSession;
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement, session: WebGPUSession) {
     this._canvas = canvas;
     const context = canvas.getContext('webgpu');
     if (!context) throw new Error('Failed to intialize WebGPU context');
     this._context = context;
-
-    navigator.gpu
-      ?.requestAdapter({
-        featureLevel: 'compatibility',
-      })
-      .then((adapter) => {
-        this._adapter = adapter;
-        return adapter?.requestDevice();
-      })
-      .then((device) => {
-        this._device = device ?? null;
-        this._ready = !!this._device && !!this._adapter;
-      });
+    this._session = session;
   }
 
   public createScene() {
@@ -39,16 +25,8 @@ export class Engine {
     return nextScene;
   }
 
-  public get adapter() {
-    return this._adapter;
-  }
-
-  public get device() {
-    return this._device;
-  }
-
-  public get ready() {
-    return this._ready;
+  public get session() {
+    return this._session;
   }
 
   public get canvas() {
@@ -59,3 +37,21 @@ export class Engine {
     return this._context;
   }
 }
+
+export interface WebGPUSession {
+  adapter: GPUAdapter;
+  device: GPUDevice;
+}
+
+export const initWebGPUSession = async (): Promise<WebGPUSession> => {
+  const adapter = await navigator.gpu?.requestAdapter({
+    featureLevel: 'compatibility',
+  });
+
+  if (!adapter) throw new Error('Failed to initialize WebGPU Adapter');
+
+  const device = await adapter?.requestDevice();
+  if (!device) throw new Error('Failed to initialize WebGPU Device');
+
+  return { adapter, device };
+};
