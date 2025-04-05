@@ -1,5 +1,10 @@
 import { Scene } from './scene.js';
 
+/**
+ * The Basic WebGPU Engine.
+ * Contains logic for managing scenes and initializing
+ * the WebGPU rendering context.
+ */
 export class Engine {
   private scenes: Scene[] = [];
 

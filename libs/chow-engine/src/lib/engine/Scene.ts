@@ -2,6 +2,13 @@ import { Engine } from './Engine.js';
 import { MaterialStore } from './Material.js';
 import { MeshStore } from './Mesh.js';
 
+/**
+ * Scene
+ *
+ * A class to store meshes, materials, textures, etc.
+ * used to render the active scene. Contains a
+ * reference to the parent engine.
+ */
 export class Scene {
   private _meshStore = new MeshStore();
   private _materialStore = new MaterialStore();
