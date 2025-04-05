@@ -10,7 +10,9 @@ export default function createRenderSystem() {
       console.log(
         TransformComponent.position.x[entity],
         TransformComponent.position.y[entity],
-        TransformComponent.position.z[entity]
+        TransformComponent.position.z[entity],
+        ModelComponent.material[entity],
+        ModelComponent.material[entity]
       );
     }
     return world;
