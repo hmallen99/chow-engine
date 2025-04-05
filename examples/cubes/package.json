@@ -1,5 +1,8 @@
 {
   "name": "@chow/cubes",
   "version": "0.0.1",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@chow/chow-engine": "^0.0.1"
+  }
 }
