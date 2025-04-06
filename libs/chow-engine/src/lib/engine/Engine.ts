@@ -1,3 +1,4 @@
+import { IWorld } from 'bitecs';
 import { createRenderer, Renderer } from './Renderer.js';
 import { Scene } from './Scene.js';
 
@@ -30,8 +31,8 @@ export class Engine {
     this._renderer = createRenderer(session.device, canvas);
   }
 
-  public createScene() {
-    const nextScene = new Scene(this);
+  public createScene(world: IWorld) {
+    const nextScene = new Scene(this, world);
     this.scenes.push(nextScene);
     return nextScene;
   }

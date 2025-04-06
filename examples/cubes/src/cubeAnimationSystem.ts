@@ -27,7 +27,7 @@ export const createCubeAnimationSystem = (scene: Scene) => {
 
     const cameraEntity = cameraQuery(world).at(0);
 
-    if (!cameraEntity) return world;
+    if (cameraEntity === undefined) return world;
 
     let i = 0;
     for (const eid of renderQuery(world)) {

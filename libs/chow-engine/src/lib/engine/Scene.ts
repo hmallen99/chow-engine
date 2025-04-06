@@ -1,3 +1,4 @@
+import { IWorld } from 'bitecs';
 import { Engine } from './Engine.js';
 import { MaterialStore } from './Material.js';
 import { MeshStore } from './Mesh.js';
@@ -10,12 +11,13 @@ import { MeshStore } from './Mesh.js';
  * reference to the parent engine.
  */
 export class Scene {
-  private _meshStore = new MeshStore();
+  private _meshStore;
   private _materialStore = new MaterialStore();
   private _engine: Engine;
 
-  constructor(engine: Engine) {
+  constructor(engine: Engine, world: IWorld) {
     this._engine = engine;
+    this._meshStore = new MeshStore(world);
   }
 
   public get engine() {

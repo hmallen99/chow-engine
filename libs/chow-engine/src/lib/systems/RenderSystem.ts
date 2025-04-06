@@ -3,11 +3,11 @@ import { TransformComponent } from '../components/TransformComponent.js';
 import { ModelComponent } from '../components/ModelComponent.js';
 import { Scene } from '../engine/Scene.js';
 import { createNormalMaterial } from '../cube/normalMat.js';
-import { cubeVertexArray } from '../cube/cube.js';
-import { writeVertices } from '../engine/Renderer.js';
+import { MeshStoreComponent } from '../components/MeshStoreComponent.js';
 
 export function createRenderSystem(scene: Scene) {
   const renderQuery = defineQuery([TransformComponent, ModelComponent]);
+  const meshStoreQuery = defineQuery([MeshStoreComponent]);
 
   const renderer = scene.engine.renderer;
   const device = renderer.device;
@@ -20,12 +20,36 @@ export function createRenderSystem(scene: Scene) {
     16
   );
 
-  // TODO: move to mesh
-  writeVertices(renderer, cubeVertexArray);
-
   // END temp code
 
   return defineSystem((world) => {
+    const meshStoreEntity = meshStoreQuery(world).at(0);
+    if (
+      meshStoreEntity !== undefined &&
+      MeshStoreComponent.dirty[meshStoreEntity]
+    ) {
+      const meshes = scene.meshStore.meshes;
+      let offset = 0;
+      for (let i = 0; i < meshes.length; i++) {
+        const mesh = meshes[i];
+        const vertices = mesh?.vertices;
+        if (vertices) {
+          renderer.renderBatch.instanceArray.set(vertices, offset);
+          offset += vertices.byteLength;
+        }
+      }
+
+      renderer.device.queue.writeBuffer(
+        renderer.renderBatch.instanceBuffer,
+        0,
+        renderer.renderBatch.instanceArray,
+        0,
+        offset
+      );
+
+      MeshStoreComponent.dirty[meshStoreEntity] = 0;
+    }
+
     // TODO: make generic for multiple buffers, bindGroups
     let offset = 0;
     let numInstances = 0;

@@ -1,5 +1,5 @@
 const INITIAL_CAPACITY = 1024;
-const INSTANCE_SIZE_F32 = 40;
+export const INSTANCE_SIZE_F32 = 40;
 
 export interface RenderBatch {
   instanceArray: Float32Array;
@@ -21,18 +21,6 @@ export const createRenderBatch = (
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     }),
   };
-};
-
-export const writeVertices = (renderer: Renderer, vertices: Float32Array) => {
-  renderer.renderBatch.instanceArray.set(vertices);
-
-  renderer.device.queue.writeBuffer(
-    renderer.renderBatch.instanceBuffer,
-    0,
-    renderer.renderBatch.instanceArray,
-    0,
-    vertices.length * INSTANCE_SIZE_F32
-  );
 };
 
 export interface Renderer {
