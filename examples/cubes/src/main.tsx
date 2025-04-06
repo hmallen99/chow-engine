@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { createWorld, Engine, createRenderSystem, pipe, initWebGPUSession } from "@chow/chow-engine"
-import { createCubeAnimationSystem, initializeCubes } from './cubeAnimationSystem';
+import { createCubeAnimationSystem, initializeCamera, initializeCubes } from './cubeAnimationSystem';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -21,7 +21,7 @@ initWebGPUSession().then((session) => {
   const world = createWorld()
 
   initializeCubes(world)
-
+  initializeCamera(world, scene)
   // TODO: initialize cube mesh
 
   setInterval(() => {

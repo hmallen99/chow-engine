@@ -1,6 +1,7 @@
 import {
   addComponent,
   addEntity,
+  CameraComponent,
   defineComponent,
   defineQuery,
   defineSystem,
@@ -17,20 +18,17 @@ const yCount = 4;
 
 export const createCubeAnimationSystem = (scene: Scene) => {
   const renderQuery = defineQuery([TransformComponent, ModelComponent]);
+  const cameraQuery = defineQuery([CameraComponent]);
 
-  // TODO: Move to camera component
-  const aspect = scene.engine.canvas.width / scene.engine.canvas.height;
-  const projectionMatrix = mat4.perspective(
-    (2 * Math.PI) / 5,
-    aspect,
-    1,
-    100.0
-  );
-  const viewMatrix = mat4.translation(vec3.fromValues(0, 0, -12));
   const tmpMat4 = mat4.create();
 
   return defineSystem((world) => {
     const now = Date.now() / 1000;
+
+    const cameraEntity = cameraQuery(world).at(0);
+
+    if (!cameraEntity) return world;
+
     let i = 0;
     for (const eid of renderQuery(world)) {
       const x = Math.floor(i / 4);
@@ -47,8 +45,12 @@ export const createCubeAnimationSystem = (scene: Scene) => {
         tmpMat4
       );
 
-      mat4.multiply(viewMatrix, tmpMat4, tmpMat4);
-      mat4.multiply(projectionMatrix, tmpMat4, tmpMat4);
+      mat4.multiply(CameraComponent.viewMatrix[cameraEntity], tmpMat4, tmpMat4);
+      mat4.multiply(
+        CameraComponent.projectionMatrix[cameraEntity],
+        tmpMat4,
+        tmpMat4
+      );
 
       TransformComponent.matrix[eid].set(tmpMat4, 0);
       i++;
@@ -86,4 +88,21 @@ export const initializeCubes = (world: IWorld) => {
       m++;
     }
   }
+};
+
+export const initializeCamera = (world: IWorld, scene: Scene) => {
+  const cameraEntity = addEntity(world);
+  addComponent(world, CameraComponent, cameraEntity);
+
+  const aspect = scene.engine.canvas.width / scene.engine.canvas.height;
+  const projectionMatrix = mat4.perspective(
+    (2 * Math.PI) / 5,
+    aspect,
+    1,
+    100.0
+  );
+  const viewMatrix = mat4.translation(vec3.fromValues(0, 0, -12));
+  CameraComponent.aspect[cameraEntity] = aspect;
+  CameraComponent.projectionMatrix[cameraEntity] = projectionMatrix;
+  CameraComponent.viewMatrix[cameraEntity] = viewMatrix;
 };
