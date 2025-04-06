@@ -1,12 +1,14 @@
 import {
   addComponent,
   addEntity,
+  defineComponent,
   defineQuery,
   defineSystem,
   IWorld,
   ModelComponent,
   Scene,
   TransformComponent,
+  Types,
 } from '@chow/chow-engine';
 import { mat4, vec3 } from 'wgpu-matrix';
 
@@ -35,7 +37,7 @@ export const createCubeAnimationSystem = (scene: Scene) => {
       const y = i % 4;
 
       mat4.rotate(
-        TransformComponent.matrix[eid],
+        InitialTransformComponent.matrix[eid],
         vec3.fromValues(
           Math.sin((x + 0.5) * now),
           Math.cos((y + 0.5) * now),
@@ -48,7 +50,6 @@ export const createCubeAnimationSystem = (scene: Scene) => {
       mat4.multiply(viewMatrix, tmpMat4, tmpMat4);
       mat4.multiply(projectionMatrix, tmpMat4, tmpMat4);
 
-      console.log(TransformComponent.matrix[eid], tmpMat4);
       TransformComponent.matrix[eid].set(tmpMat4, 0);
       i++;
     }
@@ -56,6 +57,10 @@ export const createCubeAnimationSystem = (scene: Scene) => {
     return world;
   });
 };
+
+const InitialTransformComponent = defineComponent({
+  matrix: [Types.f32, 16],
+});
 
 export const initializeCubes = (world: IWorld) => {
   const step = 4.0;
@@ -65,8 +70,9 @@ export const initializeCubes = (world: IWorld) => {
       const eid = addEntity(world);
       addComponent(world, ModelComponent, eid);
       addComponent(world, TransformComponent, eid);
+      addComponent(world, InitialTransformComponent, eid);
       ModelComponent.mesh[eid] = 0;
-      TransformComponent.matrix[eid].set(
+      InitialTransformComponent.matrix[eid].set(
         mat4.translation(
           vec3.fromValues(
             step * (x - xCount / 2 + 0.5),
