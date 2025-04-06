@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import { createWorld, Engine, createRenderSystem, pipe, addComponent, addEntity, ModelComponent, TransformComponent, initWebGPUSession } from "@chow/chow-engine"
+import { createWorld, Engine, createRenderSystem, pipe, initWebGPUSession } from "@chow/chow-engine"
+import { createCubeAnimationSystem, initializeCubes } from './cubeAnimationSystem';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -8,31 +9,25 @@ const root = ReactDOM.createRoot(
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement
 
-const session = await initWebGPUSession()
+initWebGPUSession().then((session) => {
+  const engine = new Engine(canvas, session)
+  const scene = engine.createScene()
 
-const engine = new Engine(canvas, session)
-const scene = engine.createScene()
+  const cubeAnimationSystem = createCubeAnimationSystem(scene)
+  const renderSystem = createRenderSystem(scene)
 
-const renderSystem = createRenderSystem(scene)
+  const pipeline = pipe(cubeAnimationSystem, renderSystem)
 
-const pipeline = pipe(renderSystem)
+  const world = createWorld()
 
-const world = createWorld()
+  initializeCubes(world)
 
-const eid = addEntity(world)
-addComponent(world, ModelComponent, eid)
-addComponent(world, TransformComponent, eid)
+  // TODO: initialize cube mesh
 
-TransformComponent.position.x[eid] = 0
-TransformComponent.position.y[eid] = 1
-TransformComponent.position.z[eid] = 2
-ModelComponent.materials[eid][0] = 0
-ModelComponent.mesh[eid] = 0
-
-setInterval(() => {
-  pipeline(world)
-}, 16)
-
+  setInterval(() => {
+    pipeline(world)
+  }, 16)
+})
 
 root.render(
   <StrictMode>
