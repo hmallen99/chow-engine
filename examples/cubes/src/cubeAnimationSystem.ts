@@ -12,6 +12,7 @@ import {
   Types,
 } from '@chow/chow-engine';
 import { mat4, vec3 } from 'wgpu-matrix';
+import { cubeVertexArray } from './cube';
 
 const xCount = 4;
 const yCount = 4;
@@ -64,16 +65,19 @@ const InitialTransformComponent = defineComponent({
   matrix: [Types.f32, 16],
 });
 
-export const initializeCubes = (world: IWorld) => {
+export const initializeCubes = (world: IWorld, scene: Scene) => {
   const step = 4.0;
   let m = 0;
+  const meshId = scene.meshStore.addMesh({
+    vertices: cubeVertexArray,
+  });
   for (let x = 0; x < xCount; x++) {
     for (let y = 0; y < yCount; y++) {
       const eid = addEntity(world);
       addComponent(world, ModelComponent, eid);
       addComponent(world, TransformComponent, eid);
       addComponent(world, InitialTransformComponent, eid);
-      ModelComponent.mesh[eid] = 0;
+      ModelComponent.mesh[eid] = meshId;
       InitialTransformComponent.matrix[eid].set(
         mat4.translation(
           vec3.fromValues(
