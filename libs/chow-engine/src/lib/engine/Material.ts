@@ -1,5 +1,3 @@
-import { Mat4 } from 'wgpu-matrix';
-
 export interface Material {
   pipeline: GPURenderPipeline;
   instanceSlot: number;
@@ -10,8 +8,7 @@ export interface Material {
 export interface MaterialInstance {
   bindGroups: GPUBindGroup[];
   material: Material;
-  // TODO: what params does this need?
-  update: (transform: Mat4) => void;
+  update: (entity: number) => void;
   reset: () => void;
 }
 

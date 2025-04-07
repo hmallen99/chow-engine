@@ -1,4 +1,8 @@
-import { Material, MaterialInstance } from '@chow/chow-engine';
+import {
+  Material,
+  MaterialInstance,
+  TransformComponent,
+} from '@chow/chow-engine';
 import { cubeVertexSize, cubeUVOffset, cubePositionOffset } from './cube.js';
 import {
   vertex as instancedVertWGSL,
@@ -99,7 +103,9 @@ export const createNormalMaterialInstance = (
 
   let offset = 0;
 
-  const updateNormalMaterialInstance = (transform: Mat4) => {
+  // TODO: resize as needed
+  const updateNormalMaterialInstance = (entity: number) => {
+    const transform = TransformComponent.matrix[entity];
     device.queue.writeBuffer(
       uniformBuffer,
       offset,

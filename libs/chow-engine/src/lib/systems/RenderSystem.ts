@@ -42,14 +42,13 @@ export function createRenderSystem(scene: Scene) {
     }
 
     for (const entity of renderQuery(world)) {
-      const transform = TransformComponent.matrix[entity];
       const meshId = ModelComponent.mesh[entity];
       const mesh = scene.meshStore.get(meshId);
 
       const materialId = ModelComponent.materials[entity][0];
       const materialInstance = scene.materialStore.get(materialId);
       if (materialInstance && mesh) {
-        materialInstance.update(transform);
+        materialInstance.update(entity);
         scene.renderer.renderBatch.addInstance(
           materialInstance.material,
           mesh,
