@@ -76,6 +76,7 @@ export class RenderBatch {
       instances = { instanceCount: 0, bufferOffset: 0, entities: [] };
       materialInstances.set(materialInstance, instances);
     }
+    instances.instanceCount++;
     instances.entities.push(modelId);
 
     return this._instanceCount++;

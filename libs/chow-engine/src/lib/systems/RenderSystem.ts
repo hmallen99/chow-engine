@@ -115,6 +115,7 @@ export function createRenderSystem(scene: Scene) {
     for (const material of scene.materialStore.materials) {
       material?.reset();
     }
+    renderer.renderBatch.clear();
 
     return world;
   });
