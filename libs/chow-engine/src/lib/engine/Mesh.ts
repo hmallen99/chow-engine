@@ -2,8 +2,23 @@ import { addComponent, addEntity, IWorld } from 'bitecs';
 import { MeshStoreComponent } from '../components/MeshStoreComponent.js';
 
 export interface Mesh {
-  indices?: Float32Array;
-  vertices?: Float32Array;
+  vertexBuffers: {
+    slot: GPUIndex32;
+    buffer: GPUBuffer;
+    offset: GPUSize64;
+  }[];
+  indexBuffer?: {
+    buffer: GPUBuffer;
+    format: GPUIndexFormat;
+    offset: GPUSize64;
+  };
+  drawCount: GPUSize32;
+}
+
+export interface MeshInstance {
+  instanceCount: GPUSize32;
+  bufferOffset: GPUSize64;
+  entities: number[];
 }
 
 export class MeshStore {

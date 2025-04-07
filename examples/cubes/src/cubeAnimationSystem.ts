@@ -12,7 +12,11 @@ import {
   Types,
 } from '@chow/chow-engine';
 import { mat4, vec3 } from 'wgpu-matrix';
-import { cubeVertexArray } from './cube';
+import { cubeVertexArray, cubeVertexCount } from './cube';
+import {
+  createNormalMaterial,
+  createNormalMaterialInstance,
+} from './normalMat';
 
 const xCount = 4;
 const yCount = 4;
@@ -68,9 +72,32 @@ const InitialTransformComponent = defineComponent({
 export const initializeCubes = (world: IWorld, scene: Scene) => {
   const step = 4.0;
   let m = 0;
-  const meshId = scene.meshStore.addMesh({
-    vertices: cubeVertexArray,
+
+  const device = scene.engine.session.device;
+
+  const vertexBuffer = device.createBuffer({
+    size: cubeVertexArray.byteLength,
+    usage: GPUBufferUsage.VERTEX,
+    mappedAtCreation: true,
   });
+  new Float32Array(vertexBuffer.getMappedRange()).set(cubeVertexArray);
+  vertexBuffer.unmap();
+
+  const meshId = scene.meshStore.addMesh({
+    vertexBuffers: [
+      {
+        slot: 0,
+        buffer: vertexBuffer,
+        offset: 0,
+      },
+    ],
+    drawCount: cubeVertexCount,
+  });
+  const normalMat = createNormalMaterial(device, scene.engine.format);
+  const normalMatInstance = createNormalMaterialInstance(device, normalMat, 16);
+
+  const materialId = scene.materialStore.addMaterial(normalMatInstance);
+
   for (let x = 0; x < xCount; x++) {
     for (let y = 0; y < yCount; y++) {
       const eid = addEntity(world);
@@ -78,6 +105,7 @@ export const initializeCubes = (world: IWorld, scene: Scene) => {
       addComponent(world, TransformComponent, eid);
       addComponent(world, InitialTransformComponent, eid);
       ModelComponent.mesh[eid] = meshId;
+      ModelComponent.materials[eid][0] = materialId;
       InitialTransformComponent.matrix[eid].set(
         mat4.translation(
           vec3.fromValues(
