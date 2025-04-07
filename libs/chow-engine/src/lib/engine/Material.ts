@@ -4,7 +4,6 @@ export interface Material {
   bindGroupLayouts: [GPUBindGroupLayout];
 }
 
-// TODO: how to update MaterialInstance generically?
 export interface MaterialInstance {
   bindGroups: GPUBindGroup[];
   material: Material;

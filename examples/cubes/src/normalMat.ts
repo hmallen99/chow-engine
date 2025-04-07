@@ -8,7 +8,6 @@ import {
   vertex as instancedVertWGSL,
   fragment as vertexPositionColorWGSL,
 } from './shader.js';
-import { Mat4 } from 'wgpu-matrix';
 
 export const createNormalMaterial = (
   device: GPUDevice,
