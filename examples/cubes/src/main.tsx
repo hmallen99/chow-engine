@@ -1,34 +1,31 @@
 import { StrictMode } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import { createWorld, Engine, createRenderSystem, pipe, addComponent, addEntity, ModelComponent, TransformComponent } from "@chow/chow-engine"
+import { createWorld, Engine, createRenderSystem, pipe, initWebGPUSession } from "@chow/chow-engine"
+import { createCubeAnimationSystem, initializeCamera, initializeCubes } from './cubeAnimationSystem';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
-const engine = new Engine()
-const scene = engine.createScene()
+const canvas = document.getElementById('canvas') as HTMLCanvasElement
 
-const renderSystem = createRenderSystem(scene)
+initWebGPUSession().then((session) => {
+  const engine = new Engine(canvas, session)
+  const world = createWorld()
+  const scene = engine.createScene(world)
 
-const pipeline = pipe(renderSystem)
+  const cubeAnimationSystem = createCubeAnimationSystem(scene)
+  const renderSystem = createRenderSystem(scene)
 
-const world = createWorld()
+  const pipeline = pipe(cubeAnimationSystem, renderSystem)
 
-const eid = addEntity(world)
-addComponent(world, ModelComponent, eid)
-addComponent(world, TransformComponent, eid)
+  initializeCubes(world, scene)
+  initializeCamera(world, scene)
 
-TransformComponent.position.x[eid] = 0
-TransformComponent.position.y[eid] = 1
-TransformComponent.position.z[eid] = 2
-ModelComponent.materials[eid][0] = 0
-ModelComponent.mesh[eid] = 0
-
-setInterval(() => {
-  pipeline(world)
-}, 16)
-
+  setInterval(() => {
+    pipeline(world)
+  }, 16)
+})
 
 root.render(
   <StrictMode>

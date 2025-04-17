@@ -1,3 +1,4 @@
+import { IWorld } from 'bitecs';
 import { Scene } from './Scene.js';
 
 /**
@@ -7,10 +8,62 @@ import { Scene } from './Scene.js';
  */
 export class Engine {
   private scenes: Scene[] = [];
+  private _canvas: HTMLCanvasElement;
+  private _context: GPUCanvasContext;
+  private _session: WebGPUSession;
+  private _format: GPUTextureFormat;
 
-  public createScene() {
-    const nextScene = new Scene(this);
+  constructor(canvas: HTMLCanvasElement, session: WebGPUSession) {
+    this._canvas = canvas;
+    const context = canvas.getContext('webgpu');
+    if (!context) throw new Error('Failed to intialize WebGPU context');
+    this._context = context;
+    this._session = session;
+
+    this._format = navigator.gpu.getPreferredCanvasFormat();
+    context.configure({
+      device: session.device,
+      format: this._format,
+    });
+  }
+
+  public createScene(world: IWorld) {
+    const nextScene = new Scene(this, world);
     this.scenes.push(nextScene);
     return nextScene;
   }
+
+  public get session() {
+    return this._session;
+  }
+
+  public get canvas() {
+    return this._canvas;
+  }
+
+  public get context() {
+    return this._context;
+  }
+
+  public get format() {
+    return this._format;
+  }
 }
+
+export interface WebGPUSession {
+  adapter: GPUAdapter;
+  device: GPUDevice;
+}
+
+export const initWebGPUSession = async (): Promise<WebGPUSession> => {
+  const adapter = await navigator.gpu?.requestAdapter({
+    featureLevel: 'compatibility',
+  });
+
+  if (!adapter) throw new Error('Failed to initialize WebGPU Adapter');
+
+  const device = await adapter?.requestDevice();
+  if (!device) throw new Error('Failed to initialize WebGPU Device');
+
+  return { adapter, device };
+};

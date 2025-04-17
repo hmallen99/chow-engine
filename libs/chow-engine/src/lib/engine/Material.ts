@@ -1,9 +1,30 @@
-export interface Material {}
+export interface MaterialPipeline {
+  pipeline: GPURenderPipeline;
+  instanceSlot: number;
+  bindGroupLayouts: [GPUBindGroupLayout];
+}
+
+export interface MaterialInstance {
+  bindGroups: GPUBindGroup[];
+  pipeline: MaterialPipeline;
+  update: (entity: number) => void;
+  reset: () => void;
+}
 
 export class MaterialStore {
-  private materials: (Material | null)[] = [];
+  private _materials: (MaterialInstance | null)[] = [];
 
-  public get(index: number): Material | null {
-    return this.materials.at(index) ?? null;
+  public get(index: number): MaterialInstance | null {
+    return this._materials.at(index) ?? null;
+  }
+
+  public addMaterial(material: MaterialInstance) {
+    const nextIndex = this._materials.length;
+    this._materials.push(material);
+    return nextIndex;
+  }
+
+  public get materials() {
+    return this._materials;
   }
 }
