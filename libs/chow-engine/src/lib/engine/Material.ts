@@ -1,4 +1,4 @@
-export interface Material {
+export interface MaterialPipeline {
   pipeline: GPURenderPipeline;
   instanceSlot: number;
   bindGroupLayouts: [GPUBindGroupLayout];
@@ -6,7 +6,7 @@ export interface Material {
 
 export interface MaterialInstance {
   bindGroups: GPUBindGroup[];
-  material: Material;
+  pipeline: MaterialPipeline;
   update: (entity: number) => void;
   reset: () => void;
 }

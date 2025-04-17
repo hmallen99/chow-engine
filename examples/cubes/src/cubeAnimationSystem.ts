@@ -14,7 +14,7 @@ import {
 import { mat4, vec3 } from 'wgpu-matrix';
 import { cubeVertexArray, cubeVertexCount } from './cube';
 import {
-  createNormalMaterial,
+  createNormalMaterialPipeline,
   createNormalMaterialInstance,
 } from './normalMat';
 
@@ -93,7 +93,7 @@ export const initializeCubes = (world: IWorld, scene: Scene) => {
     ],
     drawCount: cubeVertexCount,
   });
-  const normalMat = createNormalMaterial(device, scene.engine.format);
+  const normalMat = createNormalMaterialPipeline(device, scene.engine.format);
   const normalMatInstance = createNormalMaterialInstance(device, normalMat, 16);
 
   const materialId = scene.materialStore.addMaterial(normalMatInstance);

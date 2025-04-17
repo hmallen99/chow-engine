@@ -1,5 +1,5 @@
 import {
-  Material,
+  MaterialPipeline,
   MaterialInstance,
   TransformComponent,
 } from '@chow/chow-engine';
@@ -9,10 +9,10 @@ import {
   fragment as vertexPositionColorWGSL,
 } from './shader.js';
 
-export const createNormalMaterial = (
+export const createNormalMaterialPipeline = (
   device: GPUDevice,
   presentationFormat: GPUTextureFormat
-): Material => {
+): MaterialPipeline => {
   const pipeline = device.createRenderPipeline({
     layout: 'auto',
     vertex: {
@@ -76,7 +76,7 @@ export const createNormalMaterial = (
 
 export const createNormalMaterialInstance = (
   device: GPUDevice,
-  material: Material,
+  materialPipeline: MaterialPipeline,
   numInstances: number
 ): MaterialInstance => {
   const matrixFloatCount = 16; // 4x4 matrix
@@ -89,7 +89,7 @@ export const createNormalMaterialInstance = (
   });
 
   const uniformBindGroup = device.createBindGroup({
-    layout: material.pipeline.getBindGroupLayout(0),
+    layout: materialPipeline.pipeline.getBindGroupLayout(0),
     entries: [
       {
         binding: 0,
@@ -122,7 +122,7 @@ export const createNormalMaterialInstance = (
 
   return {
     bindGroups: [uniformBindGroup],
-    material,
+    pipeline: materialPipeline,
     update: updateNormalMaterialInstance,
     reset,
   };

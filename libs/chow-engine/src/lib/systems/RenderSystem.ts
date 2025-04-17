@@ -50,7 +50,7 @@ export function createRenderSystem(scene: Scene) {
       if (materialInstance && mesh) {
         materialInstance.update(entity);
         scene.renderer.renderBatch.addInstance(
-          materialInstance.material,
+          materialInstance.pipeline,
           mesh,
           materialInstance,
           entity
