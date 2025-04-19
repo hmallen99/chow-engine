@@ -79,15 +79,18 @@ export class ShaderMaterialInstance implements MaterialInstance {
   private _bindGroups;
   private _pipeline;
   private _resources;
+  private _device;
 
   constructor(
     scene: Scene,
     pipeline: ShaderMaterialPipeline,
     bindGroupEntries: ShaderResource[],
-    private _update = (entity: number, resources: ShaderResource[]) => {}
+    private _update = (entity: number, instance: ShaderMaterialInstance) => {}
   ) {
     this._pipeline = pipeline;
+
     const device = scene.engine.session.device;
+    this._device = device;
     const bindGroupMap = new Map<number, GPUBindGroupEntry[]>();
     for (const bindGroupEntry of bindGroupEntries) {
       const bindGroupIndex = bindGroupEntry.bindGroup ?? 0;
@@ -124,8 +127,24 @@ export class ShaderMaterialInstance implements MaterialInstance {
     return this._resources;
   }
 
-  public update(entity: number, resources: ShaderResource[]) {
-    this._update(entity, resources);
+  public update(entity: number) {
+    this._update(entity, this);
+  }
+
+  public setUniformBuffer(
+    data: Float32Array,
+    resourceIndex: number,
+    offset: number
+  ) {
+    const resource = this._resources[resourceIndex]
+      .resource as GPUBufferBinding;
+    this._device.queue.writeBuffer(
+      resource.buffer,
+      offset,
+      data.buffer,
+      data.byteOffset,
+      data.byteLength
+    );
   }
 
   public get pipeline() {

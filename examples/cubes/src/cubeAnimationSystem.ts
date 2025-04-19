@@ -10,7 +10,6 @@ import {
   Scene,
   ShaderMaterialInstance,
   ShaderMaterialPipeline,
-  ShaderResource,
   TransformComponent,
   Types,
 } from '@chow/chow-engine';
@@ -143,14 +142,11 @@ export const initializeCubes = (world: IWorld, scene: Scene) => {
             },
           },
         ],
-        (entity: number, resources: ShaderResource[]) => {
-          const bufferBinding = resources[0].resource as GPUBufferBinding;
-          device.queue.writeBuffer(
-            bufferBinding.buffer,
-            i * offset,
-            TransformComponent.matrix[entity].buffer,
-            TransformComponent.matrix[entity].byteOffset,
-            TransformComponent.matrix[entity].byteLength
+        (entity: number, instance: ShaderMaterialInstance) => {
+          instance.setUniformBuffer(
+            TransformComponent.matrix[entity],
+            0,
+            i * offset
           );
         }
       );
