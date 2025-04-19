@@ -147,6 +147,16 @@ export class ShaderMaterialInstance implements MaterialInstance {
     );
   }
 
+  public setTexture(textureView: GPUTextureView, resourceIndex: number) {
+    const entry = this._resources[resourceIndex];
+    entry.resource = textureView;
+  }
+
+  public setSampler(sampler: GPUSampler, resourceIndex: number) {
+    const entry = this._resources[resourceIndex];
+    entry.resource = sampler;
+  }
+
   public get pipeline() {
     return this._pipeline;
   }
