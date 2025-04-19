@@ -3,11 +3,16 @@ export interface MaterialPipeline {
   instanceSlot: number;
 }
 
+export interface ShaderResource {
+  binding: number;
+  bindGroup?: number;
+  resource: GPUBindingResource;
+}
+
 export interface MaterialInstance {
   bindGroups: GPUBindGroup[];
+  resources: ShaderResource[];
   pipeline: MaterialPipeline;
-  update: (entity: number) => void;
-  reset: () => void;
 }
 
 export class MaterialStore {

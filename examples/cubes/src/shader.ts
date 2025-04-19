@@ -8,9 +8,8 @@ fn main(
 `;
 
 export const vertex = `struct Uniforms {
-  modelViewProjectionMatrix : array<mat4x4f, 16>,
+  modelViewProjectionMatrix : mat4x4f,
 }
-
 @binding(0) @group(0) var<uniform> uniforms : Uniforms;
 
 struct VertexOutput {
@@ -21,14 +20,14 @@ struct VertexOutput {
 
 @vertex
 fn main(
-  @builtin(instance_index) instanceIdx : u32,
   @location(0) position : vec4f,
   @location(1) uv : vec2f
 ) -> VertexOutput {
   var output : VertexOutput;
-  output.Position = uniforms.modelViewProjectionMatrix[instanceIdx] * position;
+  output.Position = uniforms.modelViewProjectionMatrix * position;
   output.fragUV = uv;
-  output.fragPosition = 0.5 * (position + vec4(1.0));
+  output.fragPosition = 0.5 * (position + vec4(1.0, 1.0, 1.0, 1.0));
   return output;
 }
+
 `;

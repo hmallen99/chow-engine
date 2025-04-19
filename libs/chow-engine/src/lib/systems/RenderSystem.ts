@@ -2,44 +2,47 @@ import { defineQuery, defineSystem } from 'bitecs';
 import { TransformComponent } from '../components/TransformComponent.js';
 import { ModelComponent } from '../components/ModelComponent.js';
 import { Scene } from '../engine/Scene.js';
-import { InstanceBufferComponent } from '../components/InstanceBufferComponent.js';
-import { INSTANCE_SIZE_F32 } from '../engine/Renderer.js';
+// TODO: implement instancing
+// import { InstanceBufferComponent } from '../components/InstanceBufferComponent.js';
+// import { INSTANCE_SIZE_F32 } from '../engine/Renderer.js';
 
 export function createRenderSystem(scene: Scene) {
   const renderQuery = defineQuery([TransformComponent, ModelComponent]);
-  const instanceBufferQuery = defineQuery([InstanceBufferComponent]);
+  // TODO: implement instancing
+  // const instanceBufferQuery = defineQuery([InstanceBufferComponent]);
 
   const renderer = scene.renderer;
   const device = renderer.device;
 
   return defineSystem((world) => {
-    const instanceBufferEntity = instanceBufferQuery(world).at(0);
-    if (
-      instanceBufferEntity !== undefined &&
-      InstanceBufferComponent.dirty[instanceBufferEntity]
-    ) {
-      let instanceCount = 0;
-      for (const meshMaterials of renderer.renderBatch.materialMap.values()) {
-        for (const materialInstances of meshMaterials.values()) {
-          for (const instances of materialInstances.values()) {
-            instances.bufferOffset = instanceCount * 4;
+    // TODO: implement instancing
+    // const instanceBufferEntity = instanceBufferQuery(world).at(0);
+    // if (
+    //   instanceBufferEntity !== undefined &&
+    //   InstanceBufferComponent.dirty[instanceBufferEntity]
+    // ) {
+    //   let instanceCount = 0;
+    //   for (const meshMaterials of renderer.renderBatch.materialMap.values()) {
+    //     for (const materialInstances of meshMaterials.values()) {
+    //       for (const instances of materialInstances.values()) {
+    //         instances.bufferOffset = instanceCount * 4;
 
-            for (let i = 0; i < instances.entities.length; i++) {
-              const eid = instances.entities[i];
-              const arrayOffset = instanceCount * INSTANCE_SIZE_F32;
+    //         for (let i = 0; i < instances.entities.length; i++) {
+    //           const eid = instances.entities[i];
+    //           const arrayOffset = instanceCount * INSTANCE_SIZE_F32;
 
-              renderer.renderBatch.instanceArray.set(
-                TransformComponent.matrix[eid],
-                arrayOffset
-              );
-              instanceCount++;
-            }
-          }
-        }
-      }
+    //           renderer.renderBatch.instanceArray.set(
+    //             TransformComponent.matrix[eid],
+    //             arrayOffset
+    //           );
+    //           instanceCount++;
+    //         }
+    //       }
+    //     }
+    //   }
 
-      InstanceBufferComponent.dirty[instanceBufferEntity] = 0;
-    }
+    //   InstanceBufferComponent.dirty[instanceBufferEntity] = 0;
+    // }
 
     for (const entity of renderQuery(world)) {
       const meshId = ModelComponent.mesh[entity];
@@ -48,7 +51,7 @@ export function createRenderSystem(scene: Scene) {
       const materialId = ModelComponent.materials[entity][0];
       const materialInstance = scene.materialStore.get(materialId);
       if (materialInstance && mesh) {
-        materialInstance.update(entity);
+        // materialInstance.update(entity);
         scene.renderer.renderBatch.addInstance(
           materialInstance.pipeline,
           mesh,
@@ -85,25 +88,32 @@ export function createRenderSystem(scene: Scene) {
           );
         }
 
-        for (const [materialInstance, instances] of materials) {
+        for (const materialInstance of materials.keys()) {
           const bindGroups = materialInstance.bindGroups;
           for (let i = 0; i < bindGroups.length; i++) {
             passEncoder.setBindGroup(i, bindGroups[i]);
           }
 
-          if (material.instanceSlot >= 0) {
-            passEncoder.setVertexBuffer(
-              0,
-              renderer.renderBatch.instanceBuffer,
-              instances.bufferOffset
-            );
+          if (mesh.indexBuffer) {
+            passEncoder.drawIndexed(mesh.drawCount);
+          } else {
+            passEncoder.draw(mesh.drawCount);
           }
 
-          if (mesh.indexBuffer) {
-            passEncoder.drawIndexed(mesh.drawCount, instances.instanceCount);
-          } else {
-            passEncoder.draw(mesh.drawCount, instances.instanceCount);
-          }
+          // TODO: Support Instancing
+          // if (material.instanceSlot >= 0) {
+          //   passEncoder.setVertexBuffer(
+          //     0,
+          //     renderer.renderBatch.instanceBuffer,
+          //     instances.bufferOffset
+          //   );
+          // }
+
+          // if (mesh.indexBuffer) {
+          //   passEncoder.drawIndexed(mesh.drawCount, instances.instanceCount);
+          // } else {
+          //   passEncoder.draw(mesh.drawCount, instances.instanceCount);
+          // }
         }
       }
     }
@@ -111,9 +121,9 @@ export function createRenderSystem(scene: Scene) {
     passEncoder.end();
     device.queue.submit([commandEncoder.finish()]);
 
-    for (const material of scene.materialStore.materials) {
-      material?.reset();
-    }
+    // for (const material of scene.materialStore.materials) {
+    //   material?.reset();
+    // }
     renderer.renderBatch.clear();
 
     return world;

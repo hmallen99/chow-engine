@@ -1,4 +1,9 @@
-import { MaterialInstance, MaterialPipeline, Scene } from '../chow-engine.js';
+import {
+  MaterialInstance,
+  MaterialPipeline,
+  Scene,
+  ShaderResource,
+} from '../chow-engine.js';
 
 export interface ShaderCode {
   vertex: string;
@@ -8,12 +13,6 @@ export interface ShaderCode {
 export interface SimpleVertexBufferDescriptor {
   arrayStride: number;
   format: GPUVertexFormat;
-}
-
-export interface ShaderResource {
-  binding: number;
-  bindGroup?: number;
-  resource: GPUBindingResource;
 }
 
 export class ShaderMaterialPipeline implements MaterialPipeline {
@@ -30,12 +29,12 @@ export class ShaderMaterialPipeline implements MaterialPipeline {
       layout: 'auto',
       vertex: {
         module: device.createShaderModule({ code: shaderCode.vertex }),
-        buffers: vertexBuffers.map(({ arrayStride, format }) => {
+        buffers: vertexBuffers.map(({ arrayStride, format }, index) => {
           return {
             arrayStride,
             attributes: [
               {
-                shaderLocation: 0,
+                shaderLocation: index,
                 offset: 0,
                 format,
               },
@@ -79,6 +78,7 @@ export class ShaderMaterialPipeline implements MaterialPipeline {
 export class ShaderMaterialInstance implements MaterialInstance {
   private _bindGroups;
   private _pipeline;
+  private _resources;
 
   constructor(
     scene: Scene,
@@ -112,10 +112,15 @@ export class ShaderMaterialInstance implements MaterialInstance {
     }
 
     this._bindGroups = bindGroups;
+    this._resources = bindGroupEntries;
   }
 
   public get bindGroups() {
     return this._bindGroups;
+  }
+
+  public get resources() {
+    return this._resources;
   }
 
   public update() {}

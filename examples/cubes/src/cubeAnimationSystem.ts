@@ -8,24 +8,26 @@ import {
   IWorld,
   ModelComponent,
   Scene,
+  ShaderMaterialInstance,
+  ShaderMaterialPipeline,
   TransformComponent,
   Types,
 } from '@chow/chow-engine';
 import { mat4, vec3 } from 'wgpu-matrix';
-import { cubeVertexArray, cubeVertexCount } from './cube';
-import {
-  createNormalMaterialPipeline,
-  createNormalMaterialInstance,
-} from './normalMat';
+import { cubePositionArray, cubeUVArray, cubeVertexCount } from './cube';
+import { fragment, vertex } from './shader';
 
-const xCount = 4;
+const xCount = 8;
 const yCount = 4;
+const offset = 256; // uniformBindGroup offset must be 256-byte aligned
 
 export const createCubeAnimationSystem = (scene: Scene) => {
   const renderQuery = defineQuery([TransformComponent, ModelComponent]);
   const cameraQuery = defineQuery([CameraComponent]);
 
   const tmpMat4 = mat4.create();
+
+  const device = scene.engine.session.device;
 
   return defineSystem((world) => {
     const now = Date.now() / 1000;
@@ -58,6 +60,19 @@ export const createCubeAnimationSystem = (scene: Scene) => {
       );
 
       TransformComponent.matrix[eid].set(tmpMat4, 0);
+
+      const matId = ModelComponent.materials[eid][0];
+      const mat = scene.materialStore.get(matId);
+      if (mat) {
+        const bufferBinding = mat.resources[0].resource as GPUBufferBinding;
+        device.queue.writeBuffer(
+          bufferBinding.buffer,
+          i * offset,
+          TransformComponent.matrix[eid].buffer,
+          TransformComponent.matrix[eid].byteOffset,
+          TransformComponent.matrix[eid].byteLength
+        );
+      }
       i++;
     }
 
@@ -71,35 +86,80 @@ const InitialTransformComponent = defineComponent({
 
 export const initializeCubes = (world: IWorld, scene: Scene) => {
   const step = 4.0;
-  let m = 0;
 
   const device = scene.engine.session.device;
 
-  const vertexBuffer = device.createBuffer({
-    size: cubeVertexArray.byteLength,
+  const vertexPositionBuffer = device.createBuffer({
+    size: cubePositionArray.byteLength,
     usage: GPUBufferUsage.VERTEX,
     mappedAtCreation: true,
   });
-  new Float32Array(vertexBuffer.getMappedRange()).set(cubeVertexArray);
-  vertexBuffer.unmap();
+  new Float32Array(vertexPositionBuffer.getMappedRange()).set(
+    cubePositionArray
+  );
+  vertexPositionBuffer.unmap();
+
+  const vertexUVBuffer = device.createBuffer({
+    size: cubeUVArray.byteLength,
+    usage: GPUBufferUsage.VERTEX,
+    mappedAtCreation: true,
+  });
+  new Float32Array(vertexUVBuffer.getMappedRange()).set(cubeUVArray);
+  vertexUVBuffer.unmap();
 
   const meshId = scene.meshStore.addMesh({
     vertexBuffers: [
       {
         slot: 0,
-        buffer: vertexBuffer,
+        buffer: vertexPositionBuffer,
+        offset: 0,
+      },
+      {
+        slot: 1,
+        buffer: vertexUVBuffer,
         offset: 0,
       },
     ],
     drawCount: cubeVertexCount,
   });
-  const normalMat = createNormalMaterialPipeline(device, scene.engine.format);
-  const normalMatInstance = createNormalMaterialInstance(device, normalMat, 16);
+  const normalMatPipeline = new ShaderMaterialPipeline(
+    scene,
+    { vertex: vertex, fragment: fragment },
+    [
+      { arrayStride: 4 * 4, format: 'float32x4' },
+      { arrayStride: 2 * 4, format: 'float32x2' },
+    ]
+  );
 
-  const materialId = scene.materialStore.addMaterial(normalMatInstance);
+  const matrixSize = 4 * 16; // 4x4 matrix
+
+  const uniformBufferSize = offset * (xCount * yCount - 1) + matrixSize;
+
+  const uniformBuffer = device.createBuffer({
+    size: uniformBufferSize,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
 
   for (let x = 0; x < xCount; x++) {
     for (let y = 0; y < yCount; y++) {
+      const i = x * yCount + y;
+      const instanceOffset = i * offset;
+      const normalMatInstance = new ShaderMaterialInstance(
+        scene,
+        normalMatPipeline,
+        [
+          {
+            binding: 0,
+            resource: {
+              buffer: uniformBuffer,
+              offset: instanceOffset,
+              size: matrixSize,
+            },
+          },
+        ]
+      );
+      const materialId = scene.materialStore.addMaterial(normalMatInstance);
+
       const eid = addEntity(world);
       addComponent(world, ModelComponent, eid);
       addComponent(world, TransformComponent, eid);
@@ -116,8 +176,6 @@ export const initializeCubes = (world: IWorld, scene: Scene) => {
         ),
         0
       );
-
-      m++;
     }
   }
 };
