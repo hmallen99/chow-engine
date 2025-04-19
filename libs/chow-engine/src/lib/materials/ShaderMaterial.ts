@@ -83,7 +83,8 @@ export class ShaderMaterialInstance implements MaterialInstance {
   constructor(
     scene: Scene,
     pipeline: ShaderMaterialPipeline,
-    bindGroupEntries: ShaderResource[]
+    bindGroupEntries: ShaderResource[],
+    private _update = (entity: number, resources: ShaderResource[]) => {}
   ) {
     this._pipeline = pipeline;
     const device = scene.engine.session.device;
@@ -123,9 +124,9 @@ export class ShaderMaterialInstance implements MaterialInstance {
     return this._resources;
   }
 
-  public update() {}
-
-  public reset() {}
+  public update(entity: number, resources: ShaderResource[]) {
+    this._update(entity, resources);
+  }
 
   public get pipeline() {
     return this._pipeline;

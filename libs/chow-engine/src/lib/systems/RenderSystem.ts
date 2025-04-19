@@ -51,7 +51,7 @@ export function createRenderSystem(scene: Scene) {
       const materialId = ModelComponent.materials[entity][0];
       const materialInstance = scene.materialStore.get(materialId);
       if (materialInstance && mesh) {
-        // materialInstance.update(entity);
+        materialInstance.update(entity, materialInstance.resources);
         scene.renderer.renderBatch.addInstance(
           materialInstance.pipeline,
           mesh,

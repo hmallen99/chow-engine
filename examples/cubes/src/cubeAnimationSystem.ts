@@ -10,6 +10,7 @@ import {
   Scene,
   ShaderMaterialInstance,
   ShaderMaterialPipeline,
+  ShaderResource,
   TransformComponent,
   Types,
 } from '@chow/chow-engine';
@@ -26,8 +27,6 @@ export const createCubeAnimationSystem = (scene: Scene) => {
   const cameraQuery = defineQuery([CameraComponent]);
 
   const tmpMat4 = mat4.create();
-
-  const device = scene.engine.session.device;
 
   return defineSystem((world) => {
     const now = Date.now() / 1000;
@@ -60,19 +59,6 @@ export const createCubeAnimationSystem = (scene: Scene) => {
       );
 
       TransformComponent.matrix[eid].set(tmpMat4, 0);
-
-      const matId = ModelComponent.materials[eid][0];
-      const mat = scene.materialStore.get(matId);
-      if (mat) {
-        const bufferBinding = mat.resources[0].resource as GPUBufferBinding;
-        device.queue.writeBuffer(
-          bufferBinding.buffer,
-          i * offset,
-          TransformComponent.matrix[eid].buffer,
-          TransformComponent.matrix[eid].byteOffset,
-          TransformComponent.matrix[eid].byteLength
-        );
-      }
       i++;
     }
 
@@ -156,7 +142,17 @@ export const initializeCubes = (world: IWorld, scene: Scene) => {
               size: matrixSize,
             },
           },
-        ]
+        ],
+        (entity: number, resources: ShaderResource[]) => {
+          const bufferBinding = resources[0].resource as GPUBufferBinding;
+          device.queue.writeBuffer(
+            bufferBinding.buffer,
+            i * offset,
+            TransformComponent.matrix[entity].buffer,
+            TransformComponent.matrix[entity].byteOffset,
+            TransformComponent.matrix[entity].byteLength
+          );
+        }
       );
       const materialId = scene.materialStore.addMaterial(normalMatInstance);
 

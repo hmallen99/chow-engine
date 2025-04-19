@@ -1,3 +1,5 @@
+import { Component } from 'bitecs';
+
 export interface MaterialPipeline {
   pipeline: GPURenderPipeline;
   instanceSlot: number;
@@ -9,10 +11,17 @@ export interface ShaderResource {
   resource: GPUBindingResource;
 }
 
+export interface ResourceUpdateSchema {
+  component: Component;
+  resourceIndex: number;
+  stride: number;
+}
+
 export interface MaterialInstance {
   bindGroups: GPUBindGroup[];
   resources: ShaderResource[];
   pipeline: MaterialPipeline;
+  update: (entity: number, resources: ShaderResource[]) => void;
 }
 
 export class MaterialStore {
