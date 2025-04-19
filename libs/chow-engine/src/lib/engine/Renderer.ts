@@ -1,6 +1,6 @@
 import { addComponent, addEntity, IWorld } from 'bitecs';
 import { InstanceBufferComponent } from '../components/InstanceBufferComponent.js';
-import { Material, MaterialInstance } from './Material.js';
+import { MaterialPipeline, MaterialInstance } from './Material.js';
 import { Mesh, MeshInstance } from './Mesh.js';
 
 const INITIAL_CAPACITY = 1024;
@@ -8,7 +8,7 @@ export const INSTANCE_SIZE_F32 = 40;
 
 type MaterialInstanceMeshInstanceMap = Map<MaterialInstance, MeshInstance>;
 type MeshMaterialInstanceMap = Map<Mesh, MaterialInstanceMeshInstanceMap>;
-type MaterialMap = Map<Material, MeshMaterialInstanceMap>;
+type MaterialMap = Map<MaterialPipeline, MeshMaterialInstanceMap>;
 
 export class RenderBatch {
   private _instanceArray: Float32Array;
@@ -53,7 +53,7 @@ export class RenderBatch {
   }
 
   public addInstance(
-    material: Material,
+    material: MaterialPipeline,
     mesh: Mesh,
     materialInstance: MaterialInstance,
     modelId: number

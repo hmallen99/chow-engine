@@ -1,7 +1,6 @@
 export interface MaterialPipeline {
   pipeline: GPURenderPipeline;
   instanceSlot: number;
-  bindGroupLayouts: [GPUBindGroupLayout];
 }
 
 export interface MaterialInstance {

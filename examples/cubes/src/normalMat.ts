@@ -69,7 +69,6 @@ export const createNormalMaterialPipeline = (
 
   return {
     pipeline,
-    bindGroupLayouts: [pipeline.getBindGroupLayout(0)],
     instanceSlot: -1,
   };
 };
