@@ -24,9 +24,12 @@ import {
 const xCount = 6;
 const yCount = 6;
 
-export const createCubeAnimationSystem = (scene: Scene) => {
+export const createCubeAnimationSystem = (scene: Scene, world: IWorld) => {
   const renderQuery = defineQuery([TransformComponent, ModelComponent]);
   const cameraQuery = defineQuery([CameraComponent]);
+
+  const cameraId = initializeCamera(world, scene);
+  initializeCubes(world, scene, cameraId);
 
   const tmpMat4 = mat4.create();
 

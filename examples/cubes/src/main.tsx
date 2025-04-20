@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { createWorld, Engine, createRenderSystem, pipe, initWebGPUSession } from "@chow/chow-engine"
-import { createCubeAnimationSystem, initializeCamera, initializeCubes } from './cubeAnimationSystem';
+import { createCubeAnimationSystem } from './cubeAnimationSystem';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -14,13 +14,10 @@ initWebGPUSession().then((session) => {
   const world = createWorld()
   const scene = engine.createScene(world)
 
-  const cubeAnimationSystem = createCubeAnimationSystem(scene)
+  const cubeAnimationSystem = createCubeAnimationSystem(scene, world)
   const renderSystem = createRenderSystem(scene)
 
   const pipeline = pipe(cubeAnimationSystem, renderSystem)
-
-  const cameraId = initializeCamera(world, scene)
-  initializeCubes(world, scene, cameraId)
 
   setInterval(() => {
     pipeline(world)
