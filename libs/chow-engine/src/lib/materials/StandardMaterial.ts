@@ -29,10 +29,11 @@ class StandardMaterialPipeline extends ShaderMaterialPipeline {
 }
 
 const MATRIX_SIZE = 4 * 16;
+const VEC3_SIZE = 4 * 4;
 const BUFFER_ALIGNMENT_OFFSET = 256;
 const INITIAL_CAPACITY = 256;
 
-const COLOR_INFO_SIZE = 4 * 4;
+const COLOR_INFO_SIZE = 4 * 8;
 const LIGHT_INFO_SIZE = 256;
 
 export class StandardMaterialInstance extends ShaderMaterialInstance {
@@ -71,6 +72,12 @@ export class StandardMaterialInstance extends ShaderMaterialInstance {
       0,
       this.index * BUFFER_ALIGNMENT_OFFSET + MATRIX_SIZE
     );
+
+    this.setUniformBuffer(
+      CameraComponent.position[this.eid],
+      0,
+      this.index * BUFFER_ALIGNMENT_OFFSET + MATRIX_SIZE * 2
+    );
   }
 
   public updateAmbientColor(color: Vec3, strength = 1) {
@@ -78,6 +85,14 @@ export class StandardMaterialInstance extends ShaderMaterialInstance {
       vec4.create(color[0], color[1], color[2], strength),
       1,
       this.index * BUFFER_ALIGNMENT_OFFSET
+    );
+  }
+
+  public updateSpecularPower(strength = 1) {
+    this.setUniformBuffer(
+      new Float32Array([strength]),
+      1,
+      this.index * BUFFER_ALIGNMENT_OFFSET + 4 * 4
     );
   }
 }
@@ -96,8 +111,11 @@ export class StandardMaterialBuilder {
     this._pipeline = new StandardMaterialPipeline(_scene);
 
     const initialSize =
-      (INITIAL_CAPACITY - 1) * BUFFER_ALIGNMENT_OFFSET + MATRIX_SIZE * 2;
+      (INITIAL_CAPACITY - 1) * BUFFER_ALIGNMENT_OFFSET +
+      MATRIX_SIZE * 2 +
+      VEC3_SIZE;
 
+    // TODO: create separate buffers for model and camera params
     this._matrixBuffer = this._device.createBuffer({
       label: 'matrixUniforms',
       size: initialSize,
@@ -134,7 +152,7 @@ export class StandardMaterialBuilder {
           resource: {
             buffer: this._matrixBuffer,
             offset: instanceOffset,
-            size: MATRIX_SIZE * 2,
+            size: MATRIX_SIZE * 2 + VEC3_SIZE,
           },
         },
         {

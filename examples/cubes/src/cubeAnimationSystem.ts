@@ -147,6 +147,7 @@ export const initializeCubes = (world: IWorld, scene: Scene) => {
         0
       );
       materialInstance.updateAmbientColor(vec3.create(1, 0, 0), 0.5);
+      materialInstance.updateSpecularPower(5);
     }
   }
 };
@@ -166,4 +167,5 @@ export const initializeCamera = (world: IWorld, scene: Scene) => {
   CameraComponent.aspect[cameraEntity] = aspect;
   CameraComponent.projectionMatrix[cameraEntity] = projectionMatrix;
   CameraComponent.viewMatrix[cameraEntity] = viewMatrix;
+  CameraComponent.position[cameraEntity].set([0, 0, -12]);
 };

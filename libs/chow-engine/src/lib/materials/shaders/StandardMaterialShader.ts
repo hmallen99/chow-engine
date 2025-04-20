@@ -1,11 +1,13 @@
 export const StandardMaterialModule = /* wgsl */ `struct Uniforms {
   modelViewMatrix : mat4x4f,
   modelViewProjectionMatrix : mat4x4f,
+  viewPosition: vec3f,
 }
 
 struct ColorInfo {
-    ambientColor: vec3f,
+    objectColor: vec3f,
     ambientStrength: f32,
+    specularStrength: f32,
 }
 
 struct LightInfo {
@@ -41,12 +43,24 @@ fn fragmentMain(
   @location(0) fragPosition: vec3f,
   @location(1) fragNormal: vec3f,
 ) -> @location(0) vec4f {
+  // Calculate ambient
   let ambient = colorInfo.ambientStrength * lightInfo.lightColor;
+
+  // Calculate diffuse
   let normal = normalize(fragNormal);
   let lightDir = normalize(lightInfo.lightPosition - fragPosition);
   let diff = max(dot(normal, lightDir), 0.0);
   let diffuse = diff * lightInfo.lightColor;
-  let result = (ambient + diffuse) * colorInfo.ambientColor;
+
+  // Calculate specular
+  let viewDir = normalize(uniforms.viewPosition - fragPosition);
+  let reflectDir = reflect(-lightDir, normal);
+  let spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+  let specular = colorInfo.specularStrength * spec * lightInfo.lightColor;
+
+  let result = (ambient + diffuse + specular) * colorInfo.objectColor;
+
+
 
   return vec4(result, 1.0);
 }
