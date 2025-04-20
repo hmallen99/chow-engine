@@ -1,7 +1,20 @@
-export const StandardMaterialVert = `struct Uniforms {
+export const StandardMaterialModule = `struct Uniforms {
   modelViewProjectionMatrix : mat4x4f,
 }
+
+struct ColorInfo {
+    ambientColor: vec3f,
+    ambientStrength: f32,
+}
+
+struct LightInfo {
+    lightColor: vec3f,
+    lightPosition: vec3f,
+}
+
 @binding(0) @group(0) var<uniform> uniforms : Uniforms;
+@binding(1) @group(0) var<uniform> colorInfo : ColorInfo;
+@binding(2) @group(0) var<uniform> lightInfo: LightInfo;
 
 struct VertexOutput {
   @builtin(position) Position : vec4f,
@@ -10,7 +23,7 @@ struct VertexOutput {
 }
 
 @vertex
-fn main(
+fn vertexMain(
   @location(0) position : vec4f,
   @location(1) uv : vec2f
 ) -> VertexOutput {
@@ -21,12 +34,15 @@ fn main(
   return output;
 }
 
-`;
-export const StandardMaterialFragment = `@fragment
-fn main(
+@fragment
+fn fragmentMain(
   @location(0) fragUV: vec2f,
   @location(1) fragPosition: vec4f
 ) -> @location(0) vec4f {
-  return fragPosition;
+  var ambient : vec3f;
+  ambient = colorInfo.ambientStrength * lightInfo.lightColor;
+  ambient = ambient * colorInfo.ambientColor;
+
+  return vec4(ambient, 1.0);
 }
 `;

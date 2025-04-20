@@ -112,6 +112,7 @@ export const initializeCubes = (world: IWorld, scene: Scene) => {
     drawCount: cubeVertexCount,
   });
   const materialBuilder = new StandardMaterialBuilder(scene);
+  materialBuilder.setLight(vec3.create(1, 1, 1), vec3.create(0, 0, -5));
 
   for (let x = 0; x < xCount; x++) {
     for (let y = 0; y < yCount; y++) {
@@ -133,6 +134,7 @@ export const initializeCubes = (world: IWorld, scene: Scene) => {
         ),
         0
       );
+      materialInstance.updateAmbientColor(vec3.create(1, 0, 0), 1);
     }
   }
 };
