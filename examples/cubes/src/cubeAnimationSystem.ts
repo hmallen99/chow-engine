@@ -8,18 +8,16 @@ import {
   IWorld,
   ModelComponent,
   Scene,
-  ShaderMaterialInstance,
-  ShaderMaterialPipeline,
+  StandardMaterialBuilder,
+  StandardMaterialInstance,
   TransformComponent,
   Types,
 } from '@chow/chow-engine';
 import { mat4, vec3 } from 'wgpu-matrix';
 import { cubePositionArray, cubeUVArray, cubeVertexCount } from './cube';
-import { fragment, vertex } from './shader';
 
-const xCount = 8;
-const yCount = 4;
-const offset = 256; // uniformBindGroup offset must be 256-byte aligned
+const xCount = 6;
+const yCount = 6;
 
 export const createCubeAnimationSystem = (scene: Scene) => {
   const renderQuery = defineQuery([TransformComponent, ModelComponent]);
@@ -61,9 +59,9 @@ export const createCubeAnimationSystem = (scene: Scene) => {
 
       const instance = scene.materialStore.get(
         ModelComponent.materials[eid][0]
-      ) as ShaderMaterialInstance;
+      ) as StandardMaterialInstance;
 
-      instance.setUniformBuffer(TransformComponent.matrix[eid], 0, i * offset);
+      instance.updateTransformMatrix();
       i++;
     }
 
@@ -113,45 +111,13 @@ export const initializeCubes = (world: IWorld, scene: Scene) => {
     ],
     drawCount: cubeVertexCount,
   });
-  const normalMatPipeline = new ShaderMaterialPipeline(
-    scene,
-    { vertex: vertex, fragment: fragment },
-    [
-      { arrayStride: 4 * 4, format: 'float32x4' },
-      { arrayStride: 2 * 4, format: 'float32x2' },
-    ]
-  );
-
-  const matrixSize = 4 * 16; // 4x4 matrix
-
-  const uniformBufferSize = offset * (xCount * yCount - 1) + matrixSize;
-
-  const uniformBuffer = device.createBuffer({
-    size: uniformBufferSize,
-    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-  });
+  const materialBuilder = new StandardMaterialBuilder(scene);
 
   for (let x = 0; x < xCount; x++) {
     for (let y = 0; y < yCount; y++) {
-      const i = x * yCount + y;
-      const instanceOffset = i * offset;
-      const normalMatInstance = new ShaderMaterialInstance(
-        scene,
-        normalMatPipeline,
-        [
-          {
-            binding: 0,
-            resource: {
-              buffer: uniformBuffer,
-              offset: instanceOffset,
-              size: matrixSize,
-            },
-          },
-        ]
-      );
-      const materialId = scene.materialStore.addMaterial(normalMatInstance);
-
       const eid = addEntity(world);
+      const materialInstance = materialBuilder.createInstance(eid);
+      const materialId = scene.materialStore.addMaterial(materialInstance);
       addComponent(world, ModelComponent, eid);
       addComponent(world, TransformComponent, eid);
       addComponent(world, InitialTransformComponent, eid);
