@@ -58,6 +58,12 @@ export const createCubeAnimationSystem = (scene: Scene) => {
       );
 
       TransformComponent.matrix[eid].set(tmpMat4, 0);
+
+      const instance = scene.materialStore.get(
+        ModelComponent.materials[eid][0]
+      ) as ShaderMaterialInstance;
+
+      instance.setUniformBuffer(TransformComponent.matrix[eid], 0, i * offset);
       i++;
     }
 
@@ -141,14 +147,7 @@ export const initializeCubes = (world: IWorld, scene: Scene) => {
               size: matrixSize,
             },
           },
-        ],
-        (entity: number, instance: ShaderMaterialInstance) => {
-          instance.setUniformBuffer(
-            TransformComponent.matrix[entity],
-            0,
-            i * offset
-          );
-        }
+        ]
       );
       const materialId = scene.materialStore.addMaterial(normalMatInstance);
 

@@ -84,8 +84,7 @@ export class ShaderMaterialInstance implements MaterialInstance {
   constructor(
     scene: Scene,
     pipeline: ShaderMaterialPipeline,
-    bindGroupEntries: ShaderResource[],
-    private _update = (entity: number, instance: ShaderMaterialInstance) => {}
+    bindGroupEntries: ShaderResource[]
   ) {
     this._pipeline = pipeline;
 
@@ -125,10 +124,6 @@ export class ShaderMaterialInstance implements MaterialInstance {
 
   public get resources() {
     return this._resources;
-  }
-
-  public update(entity: number) {
-    this._update(entity, this);
   }
 
   public setUniformBuffer(
