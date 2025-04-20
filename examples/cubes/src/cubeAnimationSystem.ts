@@ -42,6 +42,10 @@ export const createCubeAnimationSystem = (scene: Scene) => {
       const x = Math.floor(i / 4);
       const y = i % 4;
 
+      const instance = scene.materialStore.get(
+        ModelComponent.materials[eid][0]
+      ) as StandardMaterialInstance;
+
       mat4.rotate(
         InitialTransformComponent.matrix[eid],
         vec3.fromValues(
@@ -53,20 +57,9 @@ export const createCubeAnimationSystem = (scene: Scene) => {
         tmpMat4
       );
 
-      mat4.multiply(CameraComponent.viewMatrix[cameraEntity], tmpMat4, tmpMat4);
-      mat4.multiply(
-        CameraComponent.projectionMatrix[cameraEntity],
-        tmpMat4,
-        tmpMat4
-      );
-
       TransformComponent.matrix[eid].set(tmpMat4, 0);
 
-      const instance = scene.materialStore.get(
-        ModelComponent.materials[eid][0]
-      ) as StandardMaterialInstance;
-
-      instance.updateTransformMatrix();
+      instance.updateMatrix(cameraEntity);
       i++;
     }
 
@@ -130,7 +123,8 @@ export const initializeCubes = (world: IWorld, scene: Scene) => {
     drawCount: cubeVertexCount,
   });
   const materialBuilder = new StandardMaterialBuilder(scene);
-  materialBuilder.setLight(vec3.create(1, 1, 1), vec3.create(0, 0, -5));
+
+  materialBuilder.setLight(vec3.create(0.5, 0.5, 0.5), vec3.create(20, -20, 0));
 
   for (let x = 0; x < xCount; x++) {
     for (let y = 0; y < yCount; y++) {
@@ -168,7 +162,7 @@ export const initializeCamera = (world: IWorld, scene: Scene) => {
     1,
     100.0
   );
-  const viewMatrix = mat4.translation(vec3.fromValues(0, 0, -12));
+  const viewMatrix = mat4.lookAt([0, 0, -12], [0, 0, 0], [0, 1, 0]);
   CameraComponent.aspect[cameraEntity] = aspect;
   CameraComponent.projectionMatrix[cameraEntity] = projectionMatrix;
   CameraComponent.viewMatrix[cameraEntity] = viewMatrix;

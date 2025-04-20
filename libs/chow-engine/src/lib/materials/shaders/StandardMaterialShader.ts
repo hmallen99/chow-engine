@@ -1,4 +1,5 @@
-export const StandardMaterialModule = `struct Uniforms {
+export const StandardMaterialModule = /* wgsl */ `struct Uniforms {
+  modelViewMatrix : mat4x4f,
   modelViewProjectionMatrix : mat4x4f,
 }
 
@@ -18,8 +19,8 @@ struct LightInfo {
 
 struct VertexOutput {
   @builtin(position) Position : vec4f,
-  @location(0) fragUV : vec2f,
-  @location(1) fragPosition: vec4f,
+  @location(0) fragPosition : vec3f,
+  @location(1) fragNormal : vec3f
 }
 
 @vertex
@@ -30,20 +31,23 @@ fn vertexMain(
 ) -> VertexOutput {
   var output : VertexOutput;
   output.Position = uniforms.modelViewProjectionMatrix * position;
-  output.fragUV = uv;
-  output.fragPosition = 0.5 * (position + vec4(1.0, 1.0, 1.0, 1.0));
+  output.fragPosition = vec3f((uniforms.modelViewMatrix * position).xyz);
+  output.fragNormal = vec3f((uniforms.modelViewMatrix * vec4f(normal, 0)).xyz);
   return output;
 }
 
 @fragment
 fn fragmentMain(
-  @location(0) fragUV: vec2f,
-  @location(1) fragPosition: vec4f
+  @location(0) fragPosition: vec3f,
+  @location(1) fragNormal: vec3f,
 ) -> @location(0) vec4f {
-  var ambient : vec3f;
-  ambient = colorInfo.ambientStrength * lightInfo.lightColor;
-  ambient = ambient * colorInfo.ambientColor;
+  let ambient = colorInfo.ambientStrength * lightInfo.lightColor;
+  let normal = normalize(fragNormal);
+  let lightDir = normalize(lightInfo.lightPosition - fragPosition);
+  let diff = max(dot(normal, lightDir), 0.0);
+  let diffuse = diff * lightInfo.lightColor;
+  let result = (ambient + diffuse) * colorInfo.ambientColor;
 
-  return vec4(ambient, 1.0);
+  return vec4(result, 1.0);
 }
 `;

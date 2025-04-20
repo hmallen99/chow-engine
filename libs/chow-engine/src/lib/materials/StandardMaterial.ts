@@ -1,5 +1,10 @@
-import { Vec3, vec4 } from 'wgpu-matrix';
-import { Scene, ShaderResource, TransformComponent } from '../chow-engine.js';
+import { mat4, Vec3, vec4 } from 'wgpu-matrix';
+import {
+  CameraComponent,
+  Scene,
+  ShaderResource,
+  TransformComponent,
+} from '../chow-engine.js';
 import {
   ShaderMaterialInstance,
   ShaderMaterialPipeline,
@@ -41,9 +46,31 @@ export class StandardMaterialInstance extends ShaderMaterialInstance {
     super(scene, pipeline, bindGroupEntries);
   }
 
-  public updateTransformMatrix() {
-    const matrix = TransformComponent.matrix[this.eid];
-    this.setUniformBuffer(matrix, 0, this.index * BUFFER_ALIGNMENT_OFFSET);
+  public updateMatrix(cameraEntity: number) {
+    const modelMatrix = TransformComponent.matrix[this.eid];
+
+    const tempMat = mat4.create();
+    mat4.multiply(
+      CameraComponent.viewMatrix[cameraEntity],
+      modelMatrix,
+      tempMat
+    );
+
+    // set ModelMatrix
+    this.setUniformBuffer(tempMat, 0, this.index * BUFFER_ALIGNMENT_OFFSET);
+
+    mat4.multiply(
+      CameraComponent.projectionMatrix[cameraEntity],
+      tempMat,
+      tempMat
+    );
+
+    // set ModelViewProjectionMatrix
+    this.setUniformBuffer(
+      tempMat,
+      0,
+      this.index * BUFFER_ALIGNMENT_OFFSET + MATRIX_SIZE
+    );
   }
 
   public updateAmbientColor(color: Vec3, strength = 1) {
@@ -69,20 +96,23 @@ export class StandardMaterialBuilder {
     this._pipeline = new StandardMaterialPipeline(_scene);
 
     const initialSize =
-      (INITIAL_CAPACITY - 1) * BUFFER_ALIGNMENT_OFFSET + MATRIX_SIZE;
+      (INITIAL_CAPACITY - 1) * BUFFER_ALIGNMENT_OFFSET + MATRIX_SIZE * 2;
 
     this._matrixBuffer = this._device.createBuffer({
+      label: 'matrixUniforms',
       size: initialSize,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
     this._colorBuffer = this._device.createBuffer({
+      label: 'colorUniforms',
       size: (INITIAL_CAPACITY - 1) * BUFFER_ALIGNMENT_OFFSET + COLOR_INFO_SIZE,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
     // TODO: extract to light class to allow for reuse
     this._lightBuffer = this._device.createBuffer({
+      label: 'lightUniform',
       size: LIGHT_INFO_SIZE,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
@@ -104,7 +134,7 @@ export class StandardMaterialBuilder {
           resource: {
             buffer: this._matrixBuffer,
             offset: instanceOffset,
-            size: MATRIX_SIZE,
+            size: MATRIX_SIZE * 2,
           },
         },
         {
