@@ -59,7 +59,7 @@ export const createCubeAnimationSystem = (scene: Scene) => {
 
       TransformComponent.matrix[eid].set(tmpMat4, 0);
 
-      instance.updateMatrix(cameraEntity);
+      instance.updateMatrix();
       i++;
     }
 
@@ -71,7 +71,11 @@ const InitialTransformComponent = defineComponent({
   matrix: [Types.f32, 16],
 });
 
-export const initializeCubes = (world: IWorld, scene: Scene) => {
+export const initializeCubes = (
+  world: IWorld,
+  scene: Scene,
+  cameraEntity: number
+) => {
   const step = 4.0;
 
   const device = scene.engine.session.device;
@@ -125,6 +129,7 @@ export const initializeCubes = (world: IWorld, scene: Scene) => {
   const materialBuilder = new StandardMaterialBuilder(scene);
 
   materialBuilder.setLight(vec3.create(0.5, 0.5, 0.5), vec3.create(20, -20, 0));
+  materialBuilder.updateCamera(cameraEntity);
 
   for (let x = 0; x < xCount; x++) {
     for (let y = 0; y < yCount; y++) {
@@ -168,4 +173,6 @@ export const initializeCamera = (world: IWorld, scene: Scene) => {
   CameraComponent.projectionMatrix[cameraEntity] = projectionMatrix;
   CameraComponent.viewMatrix[cameraEntity] = viewMatrix;
   CameraComponent.position[cameraEntity].set([0, 0, -12]);
+
+  return cameraEntity;
 };

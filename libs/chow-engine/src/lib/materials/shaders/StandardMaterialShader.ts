@@ -1,7 +1,12 @@
-export const StandardMaterialModule = /* wgsl */ `struct Uniforms {
-  modelViewMatrix : mat4x4f,
-  modelViewProjectionMatrix : mat4x4f,
-  viewPosition: vec3f,
+export const StandardMaterialModule = /* wgsl */ `
+struct Model {
+  modelMatrix : mat4x4f,
+}
+
+struct Camera {
+  viewMatrix : mat4x4f,
+  projectionMatrix: mat4x4f,
+  position: vec3f,
 }
 
 struct ColorInfo {
@@ -15,9 +20,10 @@ struct LightInfo {
     lightPosition: vec3f,
 }
 
-@binding(0) @group(0) var<uniform> uniforms : Uniforms;
+@binding(0) @group(0) var<uniform> model : Model;
 @binding(1) @group(0) var<uniform> colorInfo : ColorInfo;
 @binding(2) @group(0) var<uniform> lightInfo: LightInfo;
+@binding(3) @group(0) var<uniform> camera: Camera;
 
 struct VertexOutput {
   @builtin(position) Position : vec4f,
@@ -32,9 +38,10 @@ fn vertexMain(
   @location(2) normal : vec3f
 ) -> VertexOutput {
   var output : VertexOutput;
-  output.Position = uniforms.modelViewProjectionMatrix * position;
-  output.fragPosition = vec3f((uniforms.modelViewMatrix * position).xyz);
-  output.fragNormal = vec3f((uniforms.modelViewMatrix * vec4f(normal, 0)).xyz);
+  let modelViewMatrix = camera.viewMatrix * model.modelMatrix;
+  output.Position = camera.projectionMatrix * modelViewMatrix * position;
+  output.fragPosition = vec3f((modelViewMatrix * position).xyz);
+  output.fragNormal = vec3f((modelViewMatrix * vec4f(normal, 0)).xyz);
   return output;
 }
 
@@ -53,7 +60,7 @@ fn fragmentMain(
   let diffuse = diff * lightInfo.lightColor;
 
   // Calculate specular
-  let viewDir = normalize(uniforms.viewPosition - fragPosition);
+  let viewDir = normalize(camera.position - fragPosition);
   let reflectDir = reflect(-lightDir, normal);
   let spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
   let specular = colorInfo.specularStrength * spec * lightInfo.lightColor;

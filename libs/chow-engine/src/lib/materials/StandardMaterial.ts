@@ -1,4 +1,4 @@
-import { mat4, Vec3, vec4 } from 'wgpu-matrix';
+import { Vec3, vec4 } from 'wgpu-matrix';
 import {
   CameraComponent,
   Scene,
@@ -35,6 +35,7 @@ const INITIAL_CAPACITY = 256;
 
 const COLOR_INFO_SIZE = 4 * 8;
 const LIGHT_INFO_SIZE = 256;
+const CAMERA_SIZE = 256;
 
 export class StandardMaterialInstance extends ShaderMaterialInstance {
   constructor(
@@ -47,37 +48,9 @@ export class StandardMaterialInstance extends ShaderMaterialInstance {
     super(scene, pipeline, bindGroupEntries);
   }
 
-  public updateMatrix(cameraEntity: number) {
+  public updateMatrix() {
     const modelMatrix = TransformComponent.matrix[this.eid];
-
-    const tempMat = mat4.create();
-    mat4.multiply(
-      CameraComponent.viewMatrix[cameraEntity],
-      modelMatrix,
-      tempMat
-    );
-
-    // set ModelMatrix
-    this.setUniformBuffer(tempMat, 0, this.index * BUFFER_ALIGNMENT_OFFSET);
-
-    mat4.multiply(
-      CameraComponent.projectionMatrix[cameraEntity],
-      tempMat,
-      tempMat
-    );
-
-    // set ModelViewProjectionMatrix
-    this.setUniformBuffer(
-      tempMat,
-      0,
-      this.index * BUFFER_ALIGNMENT_OFFSET + MATRIX_SIZE
-    );
-
-    this.setUniformBuffer(
-      CameraComponent.position[this.eid],
-      0,
-      this.index * BUFFER_ALIGNMENT_OFFSET + MATRIX_SIZE * 2
-    );
+    this.setUniformBuffer(modelMatrix, 0, this.index * BUFFER_ALIGNMENT_OFFSET);
   }
 
   public updateAmbientColor(color: Vec3, strength = 1) {
@@ -102,6 +75,7 @@ export class StandardMaterialBuilder {
   private _matrixBuffer: GPUBuffer;
   private _colorBuffer;
   private _lightBuffer;
+  private _cameraBuffer;
   private _device;
   private _instanceCount = 0;
   private _pipeline;
@@ -132,6 +106,12 @@ export class StandardMaterialBuilder {
     this._lightBuffer = this._device.createBuffer({
       label: 'lightUniform',
       size: LIGHT_INFO_SIZE,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+
+    this._cameraBuffer = this._device.createBuffer({
+      label: 'cameraUniform',
+      size: CAMERA_SIZE,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
   }
@@ -171,6 +151,14 @@ export class StandardMaterialBuilder {
             size: LIGHT_INFO_SIZE,
           },
         },
+        {
+          binding: 3,
+          resource: {
+            buffer: this._cameraBuffer,
+            offset: 0,
+            size: CAMERA_SIZE,
+          },
+        },
       ]
     );
   }
@@ -181,6 +169,24 @@ export class StandardMaterialBuilder {
       this._lightBuffer,
       color.byteLength,
       position
+    );
+  }
+
+  public updateCamera(cameraEntity: number) {
+    this._device.queue.writeBuffer(
+      this._cameraBuffer,
+      0,
+      CameraComponent.viewMatrix[cameraEntity]
+    );
+    this._device.queue.writeBuffer(
+      this._cameraBuffer,
+      MATRIX_SIZE,
+      CameraComponent.projectionMatrix[cameraEntity]
+    );
+    this._device.queue.writeBuffer(
+      this._cameraBuffer,
+      MATRIX_SIZE * 2,
+      CameraComponent.position[cameraEntity]
     );
   }
 }

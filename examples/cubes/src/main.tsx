@@ -19,8 +19,8 @@ initWebGPUSession().then((session) => {
 
   const pipeline = pipe(cubeAnimationSystem, renderSystem)
 
-  initializeCubes(world, scene)
-  initializeCamera(world, scene)
+  const cameraId = initializeCamera(world, scene)
+  initializeCubes(world, scene, cameraId)
 
   setInterval(() => {
     pipeline(world)
