@@ -17,6 +17,7 @@ class StandardMaterialPipeline extends ShaderMaterialPipeline {
       [
         { arrayStride: 4 * 4, format: 'float32x4' },
         { arrayStride: 2 * 4, format: 'float32x2' },
+        { arrayStride: 3 * 4, format: 'float32x3' },
       ]
     );
   }

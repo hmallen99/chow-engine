@@ -25,7 +25,8 @@ struct VertexOutput {
 @vertex
 fn vertexMain(
   @location(0) position : vec4f,
-  @location(1) uv : vec2f
+  @location(1) uv : vec2f,
+  @location(2) normal : vec3f
 ) -> VertexOutput {
   var output : VertexOutput;
   output.Position = uniforms.modelViewProjectionMatrix * position;

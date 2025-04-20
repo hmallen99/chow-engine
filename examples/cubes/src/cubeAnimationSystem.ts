@@ -14,7 +14,12 @@ import {
   Types,
 } from '@chow/chow-engine';
 import { mat4, vec3 } from 'wgpu-matrix';
-import { cubePositionArray, cubeUVArray, cubeVertexCount } from './cube';
+import {
+  cubeNormalArray,
+  cubePositionArray,
+  cubeUVArray,
+  cubeVertexCount,
+} from './cube';
 
 const xCount = 6;
 const yCount = 6;
@@ -96,6 +101,14 @@ export const initializeCubes = (world: IWorld, scene: Scene) => {
   new Float32Array(vertexUVBuffer.getMappedRange()).set(cubeUVArray);
   vertexUVBuffer.unmap();
 
+  const vertexNormalBuffer = device.createBuffer({
+    size: cubeNormalArray.byteLength,
+    usage: GPUBufferUsage.VERTEX,
+    mappedAtCreation: true,
+  });
+  new Float32Array(vertexNormalBuffer.getMappedRange()).set(cubeNormalArray);
+  vertexNormalBuffer.unmap();
+
   const meshId = scene.meshStore.addMesh({
     vertexBuffers: [
       {
@@ -106,6 +119,11 @@ export const initializeCubes = (world: IWorld, scene: Scene) => {
       {
         slot: 1,
         buffer: vertexUVBuffer,
+        offset: 0,
+      },
+      {
+        slot: 2,
+        buffer: vertexNormalBuffer,
         offset: 0,
       },
     ],
@@ -134,7 +152,7 @@ export const initializeCubes = (world: IWorld, scene: Scene) => {
         ),
         0
       );
-      materialInstance.updateAmbientColor(vec3.create(1, 0, 0), 1);
+      materialInstance.updateAmbientColor(vec3.create(1, 0, 0), 0.5);
     }
   }
 };
