@@ -8,22 +8,28 @@ import {
   IWorld,
   ModelComponent,
   Scene,
+  StandardMaterialBuilder,
+  StandardMaterialInstance,
   TransformComponent,
   Types,
 } from '@chow/chow-engine';
 import { mat4, vec3 } from 'wgpu-matrix';
-import { cubeVertexArray, cubeVertexCount } from './cube';
 import {
-  createNormalMaterialPipeline,
-  createNormalMaterialInstance,
-} from './normalMat';
+  cubeNormalArray,
+  cubePositionArray,
+  cubeUVArray,
+  cubeVertexCount,
+} from './cube';
 
-const xCount = 4;
-const yCount = 4;
+const xCount = 6;
+const yCount = 6;
 
-export const createCubeAnimationSystem = (scene: Scene) => {
+export const createCubeAnimationSystem = (scene: Scene, world: IWorld) => {
   const renderQuery = defineQuery([TransformComponent, ModelComponent]);
   const cameraQuery = defineQuery([CameraComponent]);
+
+  const cameraId = initializeCamera(world, scene);
+  initializeCubes(world, scene, cameraId);
 
   const tmpMat4 = mat4.create();
 
@@ -39,6 +45,10 @@ export const createCubeAnimationSystem = (scene: Scene) => {
       const x = Math.floor(i / 4);
       const y = i % 4;
 
+      const instance = scene.materialStore.get(
+        ModelComponent.materials[eid][0]
+      ) as StandardMaterialInstance;
+
       mat4.rotate(
         InitialTransformComponent.matrix[eid],
         vec3.fromValues(
@@ -50,14 +60,9 @@ export const createCubeAnimationSystem = (scene: Scene) => {
         tmpMat4
       );
 
-      mat4.multiply(CameraComponent.viewMatrix[cameraEntity], tmpMat4, tmpMat4);
-      mat4.multiply(
-        CameraComponent.projectionMatrix[cameraEntity],
-        tmpMat4,
-        tmpMat4
-      );
-
       TransformComponent.matrix[eid].set(tmpMat4, 0);
+
+      instance.updateMatrix();
       i++;
     }
 
@@ -69,38 +74,71 @@ const InitialTransformComponent = defineComponent({
   matrix: [Types.f32, 16],
 });
 
-export const initializeCubes = (world: IWorld, scene: Scene) => {
+export const initializeCubes = (
+  world: IWorld,
+  scene: Scene,
+  cameraEntity: number
+) => {
   const step = 4.0;
-  let m = 0;
 
   const device = scene.engine.session.device;
 
-  const vertexBuffer = device.createBuffer({
-    size: cubeVertexArray.byteLength,
+  const vertexPositionBuffer = device.createBuffer({
+    size: cubePositionArray.byteLength,
     usage: GPUBufferUsage.VERTEX,
     mappedAtCreation: true,
   });
-  new Float32Array(vertexBuffer.getMappedRange()).set(cubeVertexArray);
-  vertexBuffer.unmap();
+  new Float32Array(vertexPositionBuffer.getMappedRange()).set(
+    cubePositionArray
+  );
+  vertexPositionBuffer.unmap();
+
+  const vertexUVBuffer = device.createBuffer({
+    size: cubeUVArray.byteLength,
+    usage: GPUBufferUsage.VERTEX,
+    mappedAtCreation: true,
+  });
+  new Float32Array(vertexUVBuffer.getMappedRange()).set(cubeUVArray);
+  vertexUVBuffer.unmap();
+
+  const vertexNormalBuffer = device.createBuffer({
+    size: cubeNormalArray.byteLength,
+    usage: GPUBufferUsage.VERTEX,
+    mappedAtCreation: true,
+  });
+  new Float32Array(vertexNormalBuffer.getMappedRange()).set(cubeNormalArray);
+  vertexNormalBuffer.unmap();
 
   const meshId = scene.meshStore.addMesh({
     vertexBuffers: [
       {
         slot: 0,
-        buffer: vertexBuffer,
+        buffer: vertexPositionBuffer,
+        offset: 0,
+      },
+      {
+        slot: 1,
+        buffer: vertexUVBuffer,
+        offset: 0,
+      },
+      {
+        slot: 2,
+        buffer: vertexNormalBuffer,
         offset: 0,
       },
     ],
     drawCount: cubeVertexCount,
   });
-  const normalMat = createNormalMaterialPipeline(device, scene.engine.format);
-  const normalMatInstance = createNormalMaterialInstance(device, normalMat, 16);
+  const materialBuilder = new StandardMaterialBuilder(scene);
 
-  const materialId = scene.materialStore.addMaterial(normalMatInstance);
+  materialBuilder.setLight(vec3.create(0.5, 0.5, 0.5), vec3.create(20, -20, 0));
+  materialBuilder.updateCamera(cameraEntity);
 
   for (let x = 0; x < xCount; x++) {
     for (let y = 0; y < yCount; y++) {
       const eid = addEntity(world);
+      const materialInstance = materialBuilder.createInstance(eid);
+      const materialId = scene.materialStore.addMaterial(materialInstance);
       addComponent(world, ModelComponent, eid);
       addComponent(world, TransformComponent, eid);
       addComponent(world, InitialTransformComponent, eid);
@@ -116,8 +154,8 @@ export const initializeCubes = (world: IWorld, scene: Scene) => {
         ),
         0
       );
-
-      m++;
+      materialInstance.updateAmbientColor(vec3.create(1, 0, 0), 0.5);
+      materialInstance.updateSpecularPower(5);
     }
   }
 };
@@ -133,8 +171,11 @@ export const initializeCamera = (world: IWorld, scene: Scene) => {
     1,
     100.0
   );
-  const viewMatrix = mat4.translation(vec3.fromValues(0, 0, -12));
+  const viewMatrix = mat4.lookAt([0, 0, -12], [0, 0, 0], [0, 1, 0]);
   CameraComponent.aspect[cameraEntity] = aspect;
   CameraComponent.projectionMatrix[cameraEntity] = projectionMatrix;
   CameraComponent.viewMatrix[cameraEntity] = viewMatrix;
+  CameraComponent.position[cameraEntity].set([0, 0, -12]);
+
+  return cameraEntity;
 };

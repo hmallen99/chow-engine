@@ -4,3 +4,4 @@ export * from './engine/Engine.js';
 export * from './components/index.js';
 export * from './engine/Mesh.js';
 export * from './engine/Material.js';
+export * from './materials/index.js';

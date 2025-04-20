@@ -1,14 +1,26 @@
+import { Component } from 'bitecs';
+
 export interface MaterialPipeline {
   pipeline: GPURenderPipeline;
   instanceSlot: number;
-  bindGroupLayouts: [GPUBindGroupLayout];
+}
+
+export interface ShaderResource {
+  binding: number;
+  bindGroup?: number;
+  resource: GPUBindingResource;
+}
+
+export interface ResourceUpdateSchema {
+  component: Component;
+  resourceIndex: number;
+  stride: number;
 }
 
 export interface MaterialInstance {
   bindGroups: GPUBindGroup[];
+  resources: ShaderResource[];
   pipeline: MaterialPipeline;
-  update: (entity: number) => void;
-  reset: () => void;
 }
 
 export class MaterialStore {
