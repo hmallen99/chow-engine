@@ -89,7 +89,6 @@ export class StandardMaterialBuilder {
       MATRIX_SIZE * 2 +
       VEC3_SIZE;
 
-    // TODO: create separate buffers for model and camera params
     this._matrixBuffer = this._device.createBuffer({
       label: 'matrixUniforms',
       size: initialSize,
@@ -102,7 +101,7 @@ export class StandardMaterialBuilder {
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
-    // TODO: extract to light class to allow for reuse
+    // TODO: pass in light and camera buffers to allow reuse
     this._lightBuffer = this._device.createBuffer({
       label: 'lightUniform',
       size: LIGHT_INFO_SIZE,
