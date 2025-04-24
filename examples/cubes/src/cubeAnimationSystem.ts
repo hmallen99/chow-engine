@@ -11,7 +11,6 @@ import {
   ModelEntity,
   Scene,
   StandardMaterialBuilder,
-  StandardMaterialInstance,
   TransformComponent,
   Types,
 } from '@chow/chow-engine';
@@ -58,10 +57,10 @@ export const createCubeAnimationSystem = (scene: Scene, world: IWorld) => {
         tmpMat4
       );
 
-      const modelEntity = scene.entityStore.getEntity(
-        eid
-      ) as ModelEntity<StandardMaterialInstance>;
-      modelEntity.transform = tmpMat4;
+      const modelEntity = scene.entityStore.getEntity(eid);
+      if (modelEntity instanceof ModelEntity) {
+        modelEntity.transform = tmpMat4;
+      }
 
       i++;
     }
