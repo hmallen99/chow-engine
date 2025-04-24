@@ -34,6 +34,10 @@ export class ModelEntity<T extends MaterialInstance> extends Entity {
     this.material.updateTransform?.();
   }
 
+  public get transform() {
+    return TransformComponent.matrix[this.eid];
+  }
+
   public get material() {
     return this._material;
   }
