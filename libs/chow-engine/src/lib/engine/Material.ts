@@ -21,6 +21,7 @@ export interface MaterialInstance {
   bindGroups: GPUBindGroup[];
   resources: ShaderResource[];
   pipeline: MaterialPipeline;
+  updateTransform?: () => void;
 }
 
 export class MaterialStore {

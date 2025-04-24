@@ -62,7 +62,7 @@ export const createCubeAnimationSystem = (scene: Scene, world: IWorld) => {
 
       TransformComponent.matrix[eid].set(tmpMat4, 0);
 
-      instance.updateMatrix();
+      instance.updateTransform();
       i++;
     }
 

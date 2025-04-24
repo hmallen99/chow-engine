@@ -48,7 +48,7 @@ export class StandardMaterialInstance extends ShaderMaterialInstance {
     super(scene, pipeline, bindGroupEntries);
   }
 
-  public updateMatrix() {
+  public updateTransform() {
     const modelMatrix = TransformComponent.matrix[this.eid];
     this.setUniformBuffer(modelMatrix, 0, this.index * BUFFER_ALIGNMENT_OFFSET);
   }
