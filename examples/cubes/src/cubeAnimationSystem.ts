@@ -58,7 +58,7 @@ export const createCubeAnimationSystem = (scene: Scene, world: IWorld) => {
         tmpMat4
       );
 
-      const modelEntity = scene.getEntity(
+      const modelEntity = scene.entityStore.getEntity(
         eid
       ) as ModelEntity<StandardMaterialInstance>;
       modelEntity.transform = tmpMat4;
@@ -137,7 +137,7 @@ export const initializeCubes = (
 
   for (let x = 0; x < xCount; x++) {
     for (let y = 0; y < yCount; y++) {
-      const model = scene.createModelEntity(mesh, materialBuilder);
+      const model = scene.entityStore.createModelEntity(mesh, materialBuilder);
       addComponent(world, InitialTransformComponent, model.eid);
 
       InitialTransformComponent.matrix[model.eid].set(
