@@ -1,17 +1,14 @@
-import { addEntity, IWorld, removeEntity } from 'bitecs';
+import { addEntity } from 'bitecs';
+import { Scene } from '../chow-engine.js';
 
 export class Entity {
-  protected eid: number;
+  private _eid: number;
 
-  constructor(protected world: IWorld) {
-    this.eid = addEntity(world);
+  constructor(protected scene: Scene) {
+    this._eid = addEntity(scene.world);
   }
 
-  public get id() {
-    return this.eid;
-  }
-
-  public dispose() {
-    removeEntity(this.world, this.eid);
+  public get eid() {
+    return this._eid;
   }
 }

@@ -1,4 +1,4 @@
-import { addComponent, IWorld } from 'bitecs';
+import { addComponent } from 'bitecs';
 import {
   MaterialInstance,
   Mesh,
@@ -8,20 +8,29 @@ import {
 } from '../chow-engine.js';
 import { Entity } from './Entity.js';
 import { Mat4 } from 'wgpu-matrix';
+import { MaterialBuilder } from '../materials/MaterialBuilder.js';
 
 export class ModelEntity<T extends MaterialInstance> extends Entity {
-  constructor(world: IWorld, scene: Scene, mesh: Mesh, private _material: T) {
-    super(world);
-    addComponent(world, ModelComponent, this.eid);
-    addComponent(world, TransformComponent, this.eid);
+  private _material: T;
+
+  constructor(
+    scene: Scene,
+    mesh: Mesh, // TODO: allow passing MeshDescriptor or MeshBuilder
+    materialBuilder: MaterialBuilder<T> // TODO: allow passing material descriptor
+  ) {
+    super(scene);
+    addComponent(scene.world, ModelComponent, this.eid);
+    addComponent(scene.world, TransformComponent, this.eid);
     const meshId = scene.meshStore.addMesh(mesh);
     ModelComponent.mesh[this.eid] = meshId;
-    const materialId = scene.materialStore.addMaterial(_material);
+
+    this._material = materialBuilder.createInstance(this.eid);
+    const materialId = scene.materialStore.addMaterial(this._material);
     ModelComponent.materials[this.eid][0] = materialId;
   }
 
   public set transform(transform: Mat4) {
-    TransformComponent.matrix[this.id].set(transform, 0);
+    TransformComponent.matrix[this.eid].set(transform, 0);
     this.material.updateTransform?.();
   }
 

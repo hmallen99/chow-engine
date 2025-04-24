@@ -10,6 +10,7 @@ import {
   ShaderMaterialPipeline,
 } from './ShaderMaterial.js';
 import { StandardMaterialModule } from './shaders/StandardMaterialShader.js';
+import { MaterialBuilder } from './MaterialBuilder.js';
 
 class StandardMaterialPipeline extends ShaderMaterialPipeline {
   constructor(scene: Scene) {
@@ -71,7 +72,9 @@ export class StandardMaterialInstance extends ShaderMaterialInstance {
 }
 
 // TODO: make this generic for ShaderMaterials
-export class StandardMaterialBuilder {
+export class StandardMaterialBuilder
+  implements MaterialBuilder<StandardMaterialInstance>
+{
   private _matrixBuffer: GPUBuffer;
   private _colorBuffer;
   private _lightBuffer;
