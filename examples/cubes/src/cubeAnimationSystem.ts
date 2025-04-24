@@ -6,10 +6,11 @@ import {
   defineQuery,
   defineSystem,
   IWorld,
+  Mesh,
   ModelComponent,
+  ModelEntity,
   Scene,
   StandardMaterialBuilder,
-  StandardMaterialInstance,
   TransformComponent,
   Types,
 } from '@chow/chow-engine';
@@ -45,10 +46,6 @@ export const createCubeAnimationSystem = (scene: Scene, world: IWorld) => {
       const x = Math.floor(i / 4);
       const y = i % 4;
 
-      const instance = scene.materialStore.get(
-        ModelComponent.materials[eid][0]
-      ) as StandardMaterialInstance;
-
       mat4.rotate(
         InitialTransformComponent.matrix[eid],
         vec3.fromValues(
@@ -60,9 +57,11 @@ export const createCubeAnimationSystem = (scene: Scene, world: IWorld) => {
         tmpMat4
       );
 
-      TransformComponent.matrix[eid].set(tmpMat4, 0);
+      const modelEntity = scene.entityStore.getEntity(eid);
+      if (modelEntity instanceof ModelEntity) {
+        modelEntity.transform = tmpMat4;
+      }
 
-      instance.updateMatrix();
       i++;
     }
 
@@ -109,7 +108,7 @@ export const initializeCubes = (
   new Float32Array(vertexNormalBuffer.getMappedRange()).set(cubeNormalArray);
   vertexNormalBuffer.unmap();
 
-  const meshId = scene.meshStore.addMesh({
+  const mesh: Mesh = {
     vertexBuffers: [
       {
         slot: 0,
@@ -128,7 +127,8 @@ export const initializeCubes = (
       },
     ],
     drawCount: cubeVertexCount,
-  });
+  };
+
   const materialBuilder = new StandardMaterialBuilder(scene);
 
   materialBuilder.setLight(vec3.create(0.5, 0.5, 0.5), vec3.create(20, -20, 0));
@@ -136,15 +136,10 @@ export const initializeCubes = (
 
   for (let x = 0; x < xCount; x++) {
     for (let y = 0; y < yCount; y++) {
-      const eid = addEntity(world);
-      const materialInstance = materialBuilder.createInstance(eid);
-      const materialId = scene.materialStore.addMaterial(materialInstance);
-      addComponent(world, ModelComponent, eid);
-      addComponent(world, TransformComponent, eid);
-      addComponent(world, InitialTransformComponent, eid);
-      ModelComponent.mesh[eid] = meshId;
-      ModelComponent.materials[eid][0] = materialId;
-      InitialTransformComponent.matrix[eid].set(
+      const model = scene.entityStore.createModelEntity(mesh, materialBuilder);
+      addComponent(world, InitialTransformComponent, model.eid);
+
+      InitialTransformComponent.matrix[model.eid].set(
         mat4.translation(
           vec3.fromValues(
             step * (x - xCount / 2 + 0.5),
@@ -154,8 +149,8 @@ export const initializeCubes = (
         ),
         0
       );
-      materialInstance.updateAmbientColor(vec3.create(1, 0, 0), 0.5);
-      materialInstance.updateSpecularPower(5);
+      model.material.updateAmbientColor(vec3.create(1, 0, 0), 0.5);
+      model.material.updateSpecularPower(5);
     }
   }
 };

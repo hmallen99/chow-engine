@@ -3,6 +3,7 @@ import { Engine } from './Engine.js';
 import { MaterialStore } from './Material.js';
 import { MeshStore } from './Mesh.js';
 import { createRenderer, Renderer } from './Renderer.js';
+import { EntityStore } from '../entities/EntityStore.js';
 
 /**
  * Scene
@@ -16,12 +17,14 @@ export class Scene {
   private _materialStore = new MaterialStore();
   private _engine: Engine;
   private _renderer: Renderer;
+  private _entityStore;
 
-  constructor(engine: Engine, world: IWorld) {
+  constructor(engine: Engine, private _world: IWorld) {
     this._engine = engine;
-    this._meshStore = new MeshStore(world);
+    this._meshStore = new MeshStore(_world);
+    this._entityStore = new EntityStore(this);
     this._renderer = createRenderer(
-      world,
+      _world,
       engine.session.device,
       engine.canvas
     );
@@ -39,7 +42,15 @@ export class Scene {
     return this._materialStore;
   }
 
+  public get entityStore() {
+    return this._entityStore;
+  }
+
   public get renderer() {
     return this._renderer;
+  }
+
+  public get world() {
+    return this._world;
   }
 }
